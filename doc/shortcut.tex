@@ -1,0 +1,176 @@
+\documentclass[a4paper,landscape,8pt]{article}
+
+\usepackage[margin=0.8cm,top=1.2cm,bottom=0.8cm]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{multicol}
+\usepackage{amssymb}
+
+\definecolor{secbg}{HTML}{E8EAF6}
+\definecolor{headbg}{HTML}{3F51B5}
+\definecolor{headfg}{HTML}{FFFFFF}
+\definecolor{filled}{HTML}{F9A825}
+\definecolor{empty}{HTML}{D0D0D0}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+% section row
+\newcommand{\secrow}[1]{%
+  \rowcolor{secbg} \multicolumn{4}{l}{\textbf{\small #1}} \\
+}
+
+% frequency dots (1-5)
+\newcommand{\fdot}{\textcolor{filled}{$\bullet$}}
+\newcommand{\edot}{\textcolor{empty}{$\bullet$}}
+\newcommand{\freq}[1]{%
+  \ifnum#1>0\fdot\else\edot\fi
+  \ifnum#1>1\fdot\else\edot\fi
+  \ifnum#1>2\fdot\else\edot\fi
+  \ifnum#1>3\fdot\else\edot\fi
+  \ifnum#1>4\fdot\else\edot\fi
+}
+
+\pagestyle{empty}
+
+% tighten row spacing
+\renewcommand{\arraystretch}{1.05}
+\setlength{\tabcolsep}{3pt}
+\setlength{\hfuzz}{20pt}
+
+\begin{document}
+
+\begin{center}
+  {\Large\bfseries Common Lisp Shortcut Cheat Sheet}\\[2pt]
+  {\footnotesize SBCL \textbar{} Emacs SLIME vs.\ Neovim Vlime \textbar{} \today
+  \qquad Vlime prefix: \texttt{\textbackslash} (LocalLeader)
+  \quad Emacs: \texttt{C-} = Ctrl, \texttt{M-} = Alt}
+\end{center}
+
+\vspace{-0.3em}
+
+\rowcolors{2}{gray!6}{white}
+\begin{tabularx}{\textwidth}{L{3.0cm} C{1.5cm} L{3.7cm} L{3.5cm} @{\hspace{0.6em}}
+                              L{3.0cm} C{1.5cm} L{3.7cm} L{3.5cm}}
+  \arrayrulecolor{headbg}
+
+  % ── Left header ──
+  \rowcolor{headbg}
+  \textcolor{headfg}{\textbf{Name}} &
+  \textcolor{headfg}{\textbf{Freq}} &
+  \textcolor{headfg}{\textbf{Emacs}} &
+  \textcolor{headfg}{\textbf{Vlime}} &
+  % ── Right header ──
+  \textcolor{headfg}{\textbf{Name}} &
+  \textcolor{headfg}{\textbf{Freq}} &
+  \textcolor{headfg}{\textbf{Emacs}} &
+  \textcolor{headfg}{\textbf{Vlime}} \\
+  \midrule
+
+  %% ═══ LEFT COLUMN ═══                          %% ═══ RIGHT COLUMN ═══
+
+  %% ── Connection / Server ──                     %% ── Navigation / Xref ──
+  \rowcolor{secbg}
+  \multicolumn{4}{l}{\textbf{\small Connection / Server}} &
+  \multicolumn{4}{l}{\textbf{\small Navigation / Xref}} \\
+
+  Start server       & \freq{5} & \texttt{M-x slime}       & \texttt{\textbackslash rr} &
+  Find definition    & \freq{5} & \texttt{M-.}              & \texttt{\textbackslash xd} \\
+
+  Connect            & \freq{3} & \texttt{M-x slime-connect}& \texttt{\textbackslash rc} &
+  Return from def    & \freq{4} & \texttt{M-,}              & \texttt{C-o} \\
+
+  Disconnect         & \freq{1} & \texttt{M-x slime-disconnect} & \texttt{\textbackslash rd} &
+  Who calls          & \freq{3} & \texttt{C-c C-w c}        & \texttt{\textbackslash xc} \\
+
+  Switch to REPL     & \freq{5} & \texttt{C-c C-z}          & \texttt{\textbackslash ro} &
+  Who references     & \freq{2} & \texttt{C-c C-w r}        & \texttt{\textbackslash xr} \\
+
+  Clear REPL         & \freq{2} & \texttt{C-c M-o}          & \texttt{\textbackslash rC} &
+  Forward sexp       & \freq{4} & \texttt{C-M-f}            & \texttt{\%} (matchup) \\
+
+  Interrupt          & \freq{2} & \texttt{C-c C-b}          & \texttt{C-c} (REPL) &
+  Backward sexp      & \freq{4} & \texttt{C-M-b}            & \texttt{\%} (matchup) \\
+
+  %% ── Evaluation ──                              %% ── Macroexpansion ──
+  \rowcolor{secbg}
+  \multicolumn{4}{l}{\textbf{\small Evaluation}} &
+  \multicolumn{4}{l}{\textbf{\small Macroexpansion}} \\
+
+  Eval expression    & \freq{5} & \texttt{C-x C-e}          & \texttt{\textbackslash ss} &
+  Macroexpand-1      & \freq{4} & \texttt{C-c C-m}          & \texttt{\textbackslash me} \\
+
+  Eval defun         & \freq{5} & \texttt{C-M-x}            & \texttt{\textbackslash se} &
+  Macroexpand all    & \freq{2} & \texttt{C-c M-m}          & \texttt{\textbackslash ma} \\
+
+  Eval region        & \freq{4} & \texttt{C-c C-r}          & \texttt{\textbackslash sr} (vis) &
+  &&&\\
+
+  Eval buffer        & \freq{3} & (custom)                   & \texttt{\textbackslash sb} &
+  %% ── Inspection / Debugging ──
+  \multicolumn{4}{l}{} \\
+
+  \rowcolor{secbg}
+  \multicolumn{4}{l}{} &
+  \multicolumn{4}{l}{\textbf{\small Inspection / Debugging}} \\
+
+  Eval interactive   & \freq{2} & \texttt{C-c :}            & \texttt{\textbackslash si} &
+  Inspect            & \freq{3} & \texttt{C-c I}            & \texttt{\textbackslash II} \\
+
+  Eval \& print      & \freq{2} & \texttt{C-c C-p}          & \texttt{\textbackslash sa} &
+  Disassemble        & \freq{1} & \texttt{C-c M-d}          & \texttt{\textbackslash Dd} \\
+
+  %% ── Compilation ──                             (cont.)
+  \rowcolor{secbg}
+  \multicolumn{4}{l}{\textbf{\small Compilation}} &
+  \multicolumn{4}{l}{} \\
+
+  Compile defun      & \freq{5} & \texttt{C-c C-c}          & \texttt{\textbackslash of} &
+  Trace function     & \freq{3} & \texttt{C-c C-t}          & \texttt{\textbackslash tf} \\
+
+  Compile file       & \freq{3} & \texttt{C-c C-k}          & \texttt{\textbackslash oF} &
+  Untrace all        & \freq{2} & \texttt{M-x slime-untrace-all} & \texttt{\textbackslash tF} \\
+
+  Compile \& load    & \freq{5} & \texttt{C-c C-l}          & \texttt{\textbackslash ol} &
+  &&&\\
+
+  Show notes         & \freq{2} & \texttt{C-c C-w}          & (quickfix) &
+  %% ── Debugger ──
+  \multicolumn{4}{l}{} \\
+
+  \rowcolor{secbg}
+  \multicolumn{4}{l}{\textbf{\small Documentation / Info}} &
+  \multicolumn{4}{l}{\textbf{\small Debugger (SLDB)}} \\
+
+  Describe symbol    & \freq{5} & \texttt{C-c C-d d}        & \texttt{\textbackslash dd} &
+  Abort              & \freq{4} & \texttt{a}                & (choose restart) \\
+
+  Apropos            & \freq{2} & \texttt{C-c C-d a}        & \texttt{\textbackslash da} &
+  Continue           & \freq{3} & \texttt{c}                & (choose restart) \\
+
+  HyperSpec lookup   & \freq{3} & \texttt{C-c C-d h}        & \texttt{\textbackslash dh} &
+  Eval in frame      & \freq{2} & \texttt{e}                & \texttt{\textbackslash de} \\
+
+  Arglist            & \freq{4} & \texttt{C-c C-d d} / auto & \texttt{\textbackslash do} &
+  Inspect in frame   & \freq{2} & \texttt{i}                & \texttt{\textbackslash di} \\
+
+  &&&&
+  %% ── Package / System ──
+  \multicolumn{4}{l}{} \\
+
+  \rowcolor{secbg}
+  \multicolumn{4}{l}{} &
+  \multicolumn{4}{l}{\textbf{\small Package / System}} \\
+
+  &&&& Set package  & \freq{3} & \texttt{C-c M-p}          & \texttt{\textbackslash pp} \\
+  &&&& Sync package & \freq{2} & \texttt{C-c \textasciitilde} & (auto) \\
+  &&&& Load ASDF    & \freq{3} & \texttt{C-c C-l} (ql)     & \texttt{\textbackslash al} \\
+  &&&& Completion   & \freq{5} & \texttt{TAB}              & \texttt{C-Space} (cmp) \\
+
+  \bottomrule
+\end{tabularx}
+
+\end{document}

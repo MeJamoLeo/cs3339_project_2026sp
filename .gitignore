@@ -1,0 +1,13 @@
+# Ignore everything
+*
+
+# Allow directories (so nested files can be tracked)
+!*/
+
+# Allow these file types
+!*.lisp
+!*.png
+!*.tex
+
+# Allow .gitignore itself
+!.gitignore
