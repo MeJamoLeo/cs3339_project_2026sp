@@ -1,0 +1,57 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+
+\definecolor{link}{HTML}{2A5DB0}
+\definecolor{bg}{HTML}{F7F7F7}
+\definecolor{kw}{HTML}{A6261D}
+\definecolor{str}{HTML}{6E8B3D}
+\definecolor{cmt}{HTML}{888888}
+
+\lstdefinelanguage{CL}{
+  morekeywords={defun,defvar,defparameter,let,let*,if,cond,when,unless,
+    progn,loop,do,dolist,dotimes,setf,setq,funcall,apply,mapcar,format,
+    print,lambda,t,nil,logand,logior,logxor,lognot,ash,ldb,dpb,byte},
+  sensitive=true,
+  morestring=[b]",
+  morecomment=[l]{;},
+}
+
+\lstset{
+  language=CL,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{kw}\bfseries,
+  stringstyle=\color{str},
+  commentstyle=\color{cmt}\itshape,
+  backgroundcolor=\color{bg},
+  frame=single,
+  rulecolor=\color{black!20},
+  framesep=6pt,
+  xleftmargin=12pt,
+  xrightmargin=12pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  columns=flexible,
+}
+
+\hypersetup{colorlinks=true,linkcolor=link,urlcolor=link}
+
+\title{\textbf{MIPS Simulator}\\[4pt]
+  \large CS\,3339 --- Computer Architecture}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\input{4.3_building_a_datapath}
+
+\end{document}

@@ -1,0 +1,65 @@
+%% 4.3 Building a Datapath
+%% Included from mips.tex via \input
+
+\section{Datapath Elements}
+
+A datapath is the collection of state elements, computation units, and
+interconnections that together perform the data processing operations
+required by the instruction set.
+
+\subsection{Instruction Fetch}
+
+The first step in executing any instruction is to fetch it from memory.
+This requires two state elements and an adder:
+
+\begin{itemize}
+  \item \textbf{Instruction memory} --- stores the program's instructions
+        and supplies the instruction specified by an address.
+  \item \textbf{Program counter (PC)} --- a register that holds the address
+        of the current instruction.
+  \item \textbf{Adder} --- computes the next instruction address by adding
+        4 (the size of one instruction) to the current PC value.
+\end{itemize}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/figure_4.5.png}
+  \label{fig:4.5}
+\end{figure}
+
+\section{Lisp Tips}
+
+\subsection{Defining Functions}
+
+Use \texttt{defun} to define a named function.
+The general form is:
+
+\begin{lstlisting}
+(defun function-name (param1 param2 ...)
+  body)
+\end{lstlisting}
+
+A function that takes two arguments and adds them:
+
+\begin{lstlisting}
+(defun add (a b)
+  (+ a b))
+
+(add 3 5)  ; => 8
+\end{lstlisting}
+
+\subsection{Binary and Hexadecimal Literals}
+
+Common Lisp supports number literals in any base:
+
+\begin{lstlisting}
+#b1010      ; binary      => 10
+#o17        ; octal        => 15
+#xFF        ; hexadecimal  => 255
+\end{lstlisting}
+
+To print a number in binary:
+
+\begin{lstlisting}
+(format t "~B~%" 42)   ; => 101010
+\end{lstlisting}
