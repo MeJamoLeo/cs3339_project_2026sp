@@ -11,3 +11,7 @@
 
 # Allow .gitignore itself
 !.gitignore
+
+# Allow Nix flake
+!flake.nix
+!flake.lock
