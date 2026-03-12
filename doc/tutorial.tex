@@ -1,0 +1,793 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{fancyvrb}
+
+% ── Colour palette ──
+\definecolor{kw}{HTML}{A6261D}
+\definecolor{str}{HTML}{6E8B3D}
+\definecolor{cmt}{HTML}{888888}
+\definecolor{repl}{HTML}{2E8B57}
+\definecolor{bg}{HTML}{F7F7F7}
+\definecolor{link}{HTML}{2A5DB0}
+\definecolor{shell}{HTML}{4A148C}
+\definecolor{nix-kw}{HTML}{7C4DFF}
+
+\hypersetup{colorlinks=true,linkcolor=link,urlcolor=link}
+
+% ── Listings: Common Lisp ──
+\lstdefinelanguage{CL}{
+  morekeywords={defun,defvar,defparameter,defmacro,lambda,let,let*,%
+    if,cond,when,unless,progn,loop,do,dolist,dotimes,%
+    setf,setq,funcall,apply,mapcar,format,print,load,%
+    in-package,defpackage,export,use-package,%
+    t,nil,quote},
+  sensitive=true,
+  morestring=[b]",
+  morecomment=[l]{;},
+  morecomment=[n]{\#|}{|\#},
+}
+
+\lstset{
+  language=CL,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{kw}\bfseries,
+  stringstyle=\color{str},
+  commentstyle=\color{cmt}\itshape,
+  backgroundcolor=\color{bg},
+  frame=single,
+  rulecolor=\color{black!20},
+  framesep=6pt,
+  xleftmargin=12pt,
+  xrightmargin=12pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  columns=flexible,
+}
+
+% ── Shell style ──
+\lstdefinestyle{shell}{
+  language={},
+  basicstyle=\ttfamily\small\color{shell},
+  backgroundcolor=\color{bg},
+  frame=single,
+  rulecolor=\color{black!20},
+  framesep=6pt,
+  xleftmargin=12pt,
+  xrightmargin=12pt,
+  showstringspaces=false,
+}
+
+% ── REPL style ──
+\lstdefinestyle{repl}{
+  language=CL,
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{bg},
+  frame=single,
+  rulecolor=\color{black!20},
+  framesep=6pt,
+  xleftmargin=12pt,
+  xrightmargin=12pt,
+  keywordstyle=\color{kw}\bfseries,
+  stringstyle=\color{str},
+  commentstyle=\color{cmt}\itshape,
+  moredelim=[is][\color{repl}\bfseries]{|r|}{|r|},
+  showstringspaces=false,
+}
+
+% ── Listings: Nix ──
+\lstdefinelanguage{Nix}{
+  morekeywords={let,in,if,then,else,with,rec,inherit,import,true,false,null},
+  sensitive=true,
+  morestring=[b]",
+  morestring=[b]'',
+  morecomment=[l]{\#},
+  morecomment=[n]{/*}{*/},
+}
+
+\lstdefinestyle{nix}{
+  language=Nix,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{nix-kw}\bfseries,
+  stringstyle=\color{str},
+  commentstyle=\color{cmt}\itshape,
+  backgroundcolor=\color{bg},
+  frame=single,
+  rulecolor=\color{black!20},
+  framesep=6pt,
+  xleftmargin=12pt,
+  xrightmargin=12pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  columns=flexible,
+}
+
+\newcommand{\key}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\texttt{#1}}
+\newcommand{\pkg}[1]{\texttt{#1}}
+
+% ── Side-by-side layout helpers ──
+\newlength{\colwidth}
+\setlength{\colwidth}{0.47\textwidth}
+
+\newcommand{\colheader}[1]{\textbf{\large #1}\par\medskip}
+
+% ── Narrow listing style (for minipage columns) ──
+\lstdefinestyle{narrow}{
+  basicstyle=\ttfamily\footnotesize,
+  xleftmargin=4pt,
+  xrightmargin=4pt,
+  framesep=4pt,
+  breaklines=true,
+}
+
+\title{\textbf{Common Lisp Workflow Tutorial}\\[4pt]
+  \large REPL, Running Files, and Editor Integration}
+\author{CS\,3339 --- Computer Architecture}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+%% ════════════════════════════════════════════════════════════════
+\section{Setup}
+%% ════════════════════════════════════════════════════════════════
+
+\subsection{Install SBCL}
+
+\begin{lstlisting}[style=shell]
+# macOS
+brew install sbcl
+
+# Ubuntu / Debian
+sudo apt install sbcl
+
+# Nix
+nix-env -iA nixpkgs.sbcl
+\end{lstlisting}
+
+Verify:
+
+\begin{lstlisting}[style=shell]
+$ sbcl --version
+SBCL 2.4.x
+\end{lstlisting}
+
+%% ════════════════════════════════════════════════════════════════
+\section{Using the REPL (Interactive Execution)}
+%% ════════════════════════════════════════════════════════════════
+
+REPL = Read--Eval--Print Loop.
+You type an expression, it evaluates immediately, and prints the result.
+
+\subsection{Step 1: Launch the REPL}
+
+\begin{lstlisting}[style=shell]
+$ sbcl
+\end{lstlisting}
+
+The prompt changes to \texttt{*}. This is the SBCL REPL.
+
+\subsection{Step 2: Type expressions and run them}
+
+\begin{lstlisting}[style=repl]
+* (+ 1 2)
+|r|3|r|
+
+* (format t "Hello, world!~%")
+|r|Hello, world!
+NIL|r|
+
+* (defun square (x) (* x x))
+|r|SQUARE|r|
+
+* (square 7)
+|r|49|r|
+\end{lstlisting}
+
+Each expression is evaluated immediately and the result is printed.
+
+\subsection{Step 3: Quit the REPL}
+
+\begin{lstlisting}[style=repl]
+* (quit)
+\end{lstlisting}
+
+Or press \key{Ctrl+D}.
+
+%% ════════════════════════════════════════════════════════════════
+\section{Writing Code in a File and Running It}
+%% ════════════════════════════════════════════════════════════════
+
+\subsection{Step 1: Create a \file{.lisp} file}
+
+Open your editor and create \file{hello.lisp}:
+
+\begin{lstlisting}
+;;; hello.lisp --- first program
+
+(defun greet (name)
+  (format t "Hello, ~A!~%" name))
+
+(greet "World")
+\end{lstlisting}
+
+\subsection{Step 2: Run the file from the terminal}
+
+\textbf{Method A} --- \texttt{sbcl --script} (simplest, just runs and exits):
+
+\begin{lstlisting}[style=shell]
+$ sbcl --script hello.lisp
+Hello, World!
+\end{lstlisting}
+
+\textbf{Method B} --- \texttt{sbcl --load} (runs file, then drops into REPL):
+
+\begin{lstlisting}[style=shell]
+$ sbcl --load hello.lisp
+Hello, World!
+* (greet "Alice")
+Hello, Alice!
+\end{lstlisting}
+
+With \texttt{--load}, you stay in the REPL after execution,
+so you can interactively test the functions you defined.
+
+\textbf{Method C} --- \texttt{load} from inside the REPL:
+
+\begin{lstlisting}[style=repl]
+$ sbcl
+* (load "hello.lisp")
+|r|Hello, World!
+T|r|
+* (greet "Bob")
+|r|Hello, Bob!
+NIL|r|
+\end{lstlisting}
+
+\subsection{Step 3: Edit and reload}
+
+After modifying \file{hello.lisp}, just \texttt{load} it again in the REPL:
+
+\begin{lstlisting}[style=repl]
+* (load "hello.lisp")   ; changes take effect immediately
+\end{lstlisting}
+
+\subsection{Summary of methods}
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  \textbf{Method} & \textbf{Command} & \textbf{Use case} \\
+  \midrule
+  Script        & \texttt{sbcl --script file.lisp} & One-shot execution \\
+  Load + REPL   & \texttt{sbcl --load file.lisp}   & Run then interact \\
+  REPL load     & \texttt{(load "file.lisp")}      & Reload during dev \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+%% ════════════════════════════════════════════════════════════════
+\section{REPL-Driven Development}
+%% ════════════════════════════════════════════════════════════════
+
+The Common Lisp development cycle is very tight:
+write code, send it to the REPL, test it, fix it --- all without restarting.
+
+\begin{enumerate}
+  \item Write code in a \file{.lisp} file in your editor.
+  \item Send the file (or individual functions) to the REPL.
+  \item Test interactively in the REPL.
+  \item Go back to the editor, fix things, and repeat from step 2.
+\end{enumerate}
+
+Editors like SLIME (Emacs) and Vlime (Neovim) let you do steps 1--3
+without ever leaving your editor. That is their main advantage.
+
+%% ════════════════════════════════════════════════════════════════
+\section{Editor Integration}
+%% ════════════════════════════════════════════════════════════════
+
+Both Emacs (with SLIME) and Neovim (with Vlime) connect to a running SBCL
+and let you evaluate code, look up documentation, and debug --- all without
+leaving the editor. The subsections below compare the two side by side.
+
+%% ── 5.1 ──
+\subsection{Installation}
+
+\noindent
+\begin{minipage}[t]{\colwidth}
+  \colheader{Emacs + SLIME}
+  Add to \file{\textasciitilde/.emacs.d/init.el}:
+\begin{lstlisting}[style=shell,style=narrow]
+(require 'package)
+(add-to-list 'package-archives
+ '("melpa" .
+   "https://melpa.org/packages/"))
+(package-initialize)
+;; M-x package-install RET slime RET
+
+(setq inferior-lisp-program "sbcl")
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[t]{\colwidth}
+  \colheader{Neovim + Vlime}
+  Add to \file{\textasciitilde/.config/nvim/init.vim}:
+\begin{lstlisting}[style=shell,style=narrow]
+Plug 'vlime/vlime', {'rtp': 'vim/'}
+\end{lstlisting}
+  Then run \texttt{:PlugInstall} inside Neovim.
+\end{minipage}
+
+%% ── 5.2 ──
+\subsection{Starting the REPL Connection}
+
+\noindent
+\begin{minipage}[t]{\colwidth}
+  \colheader{Emacs}
+\begin{lstlisting}[style=shell,style=narrow]
+M-x slime
+\end{lstlisting}
+  A \texttt{CL-USER>} prompt appears at the bottom of the screen.
+\end{minipage}\hfill
+\begin{minipage}[t]{\colwidth}
+  \colheader{Neovim}
+  Press \key{\textbackslash rr} inside Neovim to start SBCL and open a REPL buffer.
+
+  \medskip
+  Alternatively, start the server externally:
+\begin{lstlisting}[style=shell,style=narrow]
+$ vlime-server
+\end{lstlisting}
+  Then connect from Neovim with \key{\textbackslash rc}.
+\end{minipage}
+
+%% ── 5.3 ──
+\subsection{Vlime Window Layout}
+
+After pressing \key{\textbackslash rr}, Neovim splits into several buffers.
+Each serves a distinct role:
+
+\begin{center}
+\begin{tabular}{llp{7.5cm}}
+  \toprule
+  \textbf{Status bar} & \textbf{Name} & \textbf{Role} \\
+  \midrule
+  \texttt{vlime | repl}   & REPL buffer
+    & Displays compilation results (e.g.\ \texttt{FIB}) and
+      return values of evaluated expressions. \\
+  \texttt{vlime | server} & Server buffer
+    & Shows raw SBCL and Swank startup messages.
+      Useful for diagnosing connection issues. \\
+  \texttt{vlime | sldb}   & Debugger (SLDB)
+    & Appears when an error occurs.
+      Lists restarts and a stack-frame backtrace.
+      Press \key{\textbackslash a} to abort and close. \\
+  \texttt{vlime | input}  & Input buffer
+    & Opens when using \key{\textbackslash ss} etc.
+      Edit the expression, then press \key{Enter} to send it to the REPL. \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Your source file (e.g.\ \file{tutorial.lisp}) remains in its own buffer
+alongside these Vlime windows.
+
+In Emacs, SLIME uses a similar split: the \texttt{*slime-repl*} buffer for the
+REPL and the \texttt{*sldb*} buffer for the debugger.
+
+%% ── 5.4 ──
+\subsection{Evaluating Code}
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  \textbf{Action} & \textbf{Emacs (SLIME)} & \textbf{Neovim (Vlime)} \\
+  \midrule
+  Evaluate expression      & \key{C-x C-e}  & \key{\textbackslash ss} \\
+  Evaluate top-level form   & \key{C-M-x}    & \key{\textbackslash se} \\
+  Evaluate region/selection & \key{C-c C-r}  & \key{\textbackslash sr} \\
+  Compile defun             & \key{C-c C-c}  & --- \\
+  Compile \& load file      & \key{C-c C-l}  & \key{\textbackslash ol} \\
+  Switch to REPL            & \key{C-c C-z}  & (REPL buffer) \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Vlime \key{\textbackslash ss} workflow.}
+Pressing \key{\textbackslash ss} opens an input buffer (\texttt{vlime | input}).
+The expression under the cursor is pre-filled.
+Edit it if needed, then press \key{Enter} to send it to the REPL.
+The result appears in the REPL buffer.
+\key{\textbackslash se} skips the input buffer and evaluates the top-level
+form directly.
+
+\paragraph{Note on the Vlime REPL buffer.}
+Unlike Emacs SLIME, where you can type directly into the \texttt{*slime-repl*}
+buffer, the Vlime REPL buffer is \emph{read-only} --- it only displays output.
+To send an arbitrary expression to the REPL, use \key{\textbackslash si}
+(interactive input), which opens an input buffer for you to type in.
+
+%% ── 5.5 ──
+\subsection{Documentation and Debugging}
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  \textbf{Action} & \textbf{Emacs (SLIME)} & \textbf{Neovim (Vlime)} \\
+  \midrule
+  Describe symbol           & \key{C-c C-d d} & \key{\textbackslash dd} \\
+  Open HyperSpec            & \key{C-c C-d h} & \key{\textbackslash dh} \\
+  Show arglist              & \key{C-c C-d a} & \key{\textbackslash do} \\
+  Macroexpand               & \key{C-c C-m}   & \key{\textbackslash me} \\
+  Trace function            & \key{C-c C-t}   & \key{\textbackslash tf} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+%% ── 5.5 ──
+\subsection{Walkthrough Example}
+
+\begin{enumerate}
+  \item Open \file{fib.lisp}:
+
+\begin{lstlisting}
+(defun fib (n)
+  "Return the nth Fibonacci number."
+  (if (< n 2)
+      n
+      (+ (fib (- n 1))
+         (fib (- n 2)))))
+\end{lstlisting}
+
+  \item Place cursor on the \texttt{defun} and evaluate it
+        (\key{C-c C-c} in Emacs, \key{\textbackslash se} in Vlime).
+        The REPL shows \texttt{FIB} --- the function is now defined.
+
+  \item Switch to the REPL
+        (\key{C-c C-z} in Emacs, or move to the REPL buffer in Neovim)
+        and test:
+
+\begin{lstlisting}[style=repl]
+CL-USER> (fib 10)
+|r|55|r|
+CL-USER> (fib 30)
+|r|832040|r|
+\end{lstlisting}
+
+  \item Go back to the file, edit, and re-evaluate.
+        No recompilation or restart needed --- changes apply instantly.
+\end{enumerate}
+
+%% ════════════════════════════════════════════════════════════════
+\section{Full Walkthrough: From File to Execution}
+%% ════════════════════════════════════════════════════════════════
+
+A minimal example using only the terminal (no editor plugins needed).
+
+\subsection{Step 1: Create a project directory}
+
+\begin{lstlisting}[style=shell]
+$ mkdir ~/cl-practice && cd ~/cl-practice
+\end{lstlisting}
+
+\subsection{Step 2: Write the program}
+
+Create \file{fizzbuzz.lisp}:
+
+\begin{lstlisting}
+;;; fizzbuzz.lisp
+
+(defun fizzbuzz (n)
+  (loop for i from 1 to n
+        do (format t "~A~%"
+             (cond
+               ((zerop (mod i 15)) "FizzBuzz")
+               ((zerop (mod i 3))  "Fizz")
+               ((zerop (mod i 5))  "Buzz")
+               (t                   i)))))
+
+;; This runs when the file is loaded
+(fizzbuzz 20)
+\end{lstlisting}
+
+\subsection{Step 3: Run it}
+
+\begin{lstlisting}[style=shell]
+$ sbcl --script fizzbuzz.lisp
+1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+16
+17
+Fizz
+19
+Buzz
+\end{lstlisting}
+
+\subsection{Step 4: Interactive testing}
+
+\begin{lstlisting}[style=shell]
+$ sbcl --load fizzbuzz.lisp
+\end{lstlisting}
+
+After the output, the REPL is ready:
+
+\begin{lstlisting}[style=repl]
+* (fizzbuzz 5)
+|r|1
+2
+Fizz
+4
+Buzz
+NIL|r|
+\end{lstlisting}
+
+Change the argument, call it again --- no restart required.
+
+%% ════════════════════════════════════════════════════════════════
+\section{Quick Reference}
+%% ════════════════════════════════════════════════════════════════
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  \textbf{Action} & \textbf{Emacs (SLIME)} & \textbf{Neovim (Vlime)} \\
+  \midrule
+  \multicolumn{3}{l}{\textbf{--- Terminal (both editors) ---}} \\
+  Start the REPL             & \multicolumn{2}{c}{\texttt{sbcl}} \\
+  Run a file as a script     & \multicolumn{2}{c}{\texttt{sbcl --script file.lisp}} \\
+  Load a file then REPL      & \multicolumn{2}{c}{\texttt{sbcl --load file.lisp}} \\
+  Reload inside REPL         & \multicolumn{2}{c}{\texttt{(load "file.lisp")}} \\
+  Quit the REPL              & \multicolumn{2}{c}{\texttt{(quit)} or \key{Ctrl+D}} \\
+  \midrule
+  \multicolumn{3}{l}{\textbf{--- Editor ---}} \\
+  Start REPL connection      & \key{M-x slime}  & \key{\textbackslash rr} \\
+  Evaluate expression        & \key{C-x C-e}    & \key{\textbackslash ss} \\
+  Evaluate top-level form    & \key{C-M-x}      & \key{\textbackslash se} \\
+  Compile defun              & \key{C-c C-c}    & --- \\
+  Compile \& load file       & \key{C-c C-l}    & \key{\textbackslash ol} \\
+  Switch to REPL             & \key{C-c C-z}    & (REPL buffer) \\
+  Describe symbol            & \key{C-c C-d d}  & \key{\textbackslash dd} \\
+  Macroexpand                & \key{C-c C-m}    & \key{\textbackslash me} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+\appendix
+
+%% ════════════════════════════════════════════════════════════════
+\section{flake.nix --- Development Environment}
+%% ════════════════════════════════════════════════════════════════
+
+This project uses \textbf{Nix Flakes} to provide a reproducible development environment.
+The \file{flake.nix} file declaratively specifies all dependencies needed for the project:
+a Common Lisp compiler (SBCL) with libraries, a Vlime server for Neovim integration,
+and a \LaTeX{} distribution for document compilation.
+
+Running \key{nix develop} in the project root activates a shell
+with all tools available, without installing anything globally.
+
+\subsection{Prerequisites}
+
+\begin{enumerate}
+  \item \textbf{Nix} (version 2.4 or later) with the \texttt{flakes} and
+        \texttt{nix-command} experimental features enabled.
+  \item Add the following to \file{\textasciitilde/.config/nix/nix.conf}
+        (or \file{/etc/nix/nix.conf}):
+\begin{lstlisting}[style=shell]
+experimental-features = nix-command flakes
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Usage}
+
+\subsubsection{Entering the development shell}
+
+\begin{lstlisting}[style=shell]
+$ cd /path/to/project
+$ nix develop
+\end{lstlisting}
+
+This drops you into a shell where \pkg{sbcl}, \pkg{vlime-server},
+and \pkg{pdflatex} are all available.
+
+\subsubsection{Running Common Lisp code}
+
+\begin{lstlisting}[style=shell]
+$ sbcl --script tutorial.lisp
+$ sbcl --load tutorial.lisp
+\end{lstlisting}
+
+\subsubsection{Starting the Vlime server}
+
+\begin{lstlisting}[style=shell]
+$ vlime-server
+\end{lstlisting}
+
+Then connect from Neovim with \key{\textbackslash cc}.
+
+\subsubsection{Compiling \LaTeX{} documents}
+
+\begin{lstlisting}[style=shell]
+$ pdflatex doc/tutorial.tex
+\end{lstlisting}
+
+\subsection{Structure of \file{flake.nix}}
+
+The flake is composed of two top-level attributes: \texttt{inputs} and \texttt{outputs}.
+
+\subsubsection{Inputs}
+
+\begin{lstlisting}[style=nix]
+inputs = {
+  nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+};
+\end{lstlisting}
+
+The sole input is \textbf{nixpkgs} from the \texttt{nixpkgs-unstable} branch.
+This provides access to the latest available packages.
+The exact revision is pinned in \file{flake.lock} to ensure reproducibility.
+
+\subsubsection{Outputs}
+
+The \texttt{outputs} function receives \texttt{self} (the flake itself) and
+\texttt{nixpkgs} (the resolved input), then produces a set of \texttt{devShells}.
+
+\subsubsection{Multi-platform support}
+
+\begin{lstlisting}[style=nix]
+forAllSystems = nixpkgs.lib.genAttrs [
+  "aarch64-darwin"
+  "x86_64-darwin"
+  "x86_64-linux"
+  "aarch64-linux"
+];
+\end{lstlisting}
+
+The helper \texttt{forAllSystems} generates outputs for four platforms:
+
+\begin{center}
+\begin{tabular}{ll}
+  \toprule
+  \textbf{System} & \textbf{Platform} \\
+  \midrule
+  \texttt{aarch64-darwin} & macOS (Apple Silicon) \\
+  \texttt{x86\_64-darwin} & macOS (Intel) \\
+  \texttt{x86\_64-linux}  & Linux (Intel/AMD) \\
+  \texttt{aarch64-linux}  & Linux (ARM) \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Packages Provided}
+
+The development shell provides three components.
+
+\subsubsection{SBCL with Common Lisp libraries}
+
+\begin{lstlisting}[style=nix]
+sbclWithDeps = pkgs.sbcl.withPackages (ps: [
+  ps.swank
+  ps.alexandria
+  ps.yason
+  ps.vom
+]);
+\end{lstlisting}
+
+\textbf{SBCL} (Steel Bank Common Lisp) is bundled with the following libraries:
+
+\begin{center}
+\begin{tabular}{lp{9cm}}
+  \toprule
+  \textbf{Library} & \textbf{Description} \\
+  \midrule
+  \pkg{swank}      & Backend server for SLIME/Vlime;
+                     enables REPL-driven development from an editor. \\
+  \pkg{alexandria}  & A widely-used utility library providing common functions
+                     (e.g.\ hash-table operations, list utilities, type checks). \\
+  \pkg{yason}      & A JSON encoder/decoder for Common Lisp. \\
+  \pkg{vom}        & A logging library with log-level support. \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Vlime server}
+
+\begin{lstlisting}[style=nix]
+vlime-src = pkgs.fetchFromGitHub {
+  owner = "vlime";
+  repo = "vlime";
+  rev = "e276e9a6f37d2699a3caa63be19314f5a19a1481";
+  hash = "sha256-tCqN80lgj11ggzGmuGF077oqL5ByjUp6jVmRUTrIWJA=";
+};
+
+vlime-server = pkgs.writeShellScriptBin "vlime-server" ''
+  exec ''${sbclWithDeps}/bin/sbcl --noinform \
+    --load ''${vlime-src}/lisp/start-vlime.lisp
+'';
+\end{lstlisting}
+
+A wrapper script \pkg{vlime-server} is created that:
+
+\begin{enumerate}
+  \item Fetches the Vlime source from GitHub at a pinned commit.
+  \item Launches SBCL (with all libraries loaded) and starts the Vlime server.
+  \item Suppresses the SBCL startup banner with \texttt{--noinform}.
+\end{enumerate}
+
+This provides a single command to start the Vlime server for Neovim integration,
+without requiring any manual installation of Vlime.
+
+\subsubsection{\LaTeX{} distribution}
+
+\begin{lstlisting}[style=nix]
+pkgs.texliveMedium
+\end{lstlisting}
+
+\pkg{texliveMedium} is a mid-size TeX Live distribution that includes
+common packages such as \pkg{listings}, \pkg{xcolor}, \pkg{hyperref},
+\pkg{booktabs}, and \pkg{geometry} --- everything needed to compile
+the project's documentation.
+
+\subsection{The \file{flake.lock} File}
+
+The \file{flake.lock} file is automatically generated and records the exact
+revision of each input. This ensures that every user gets the same package
+versions regardless of when they run \key{nix develop}.
+
+To update all inputs to their latest versions:
+
+\begin{lstlisting}[style=shell]
+$ nix flake update
+\end{lstlisting}
+
+To update only nixpkgs:
+
+\begin{lstlisting}[style=shell]
+$ nix flake update nixpkgs
+\end{lstlisting}
+
+After updating, commit both \file{flake.nix} and \file{flake.lock}.
+
+\subsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{lp{8cm}}
+  \toprule
+  \textbf{Command} & \textbf{Description} \\
+  \midrule
+  \texttt{nix develop}            & Enter the development shell \\
+  \texttt{sbcl}                   & Start the Common Lisp REPL \\
+  \texttt{sbcl --script file.lisp}& Run a Lisp file as a script \\
+  \texttt{vlime-server}           & Start the Vlime server for Neovim \\
+  \texttt{pdflatex doc/file.tex}  & Compile a \LaTeX{} document \\
+  \texttt{nix flake update}       & Update all inputs to latest \\
+  \texttt{nix flake show}         & Show flake outputs \\
+  \texttt{nix flake metadata}     & Show flake metadata and lock info \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}
