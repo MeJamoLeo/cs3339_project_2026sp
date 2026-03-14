@@ -27,6 +27,126 @@ This requires two state elements and an adder:
   \label{fig:4.5}
 \end{figure}
 
+\subsection{Building the Instruction Memory}
+
+In our simulator, the instruction memory is populated by reading
+a text file containing MIPS assembly and converting each line to
+a 32-bit binary integer. This process has three stages:
+
+\begin{enumerate}
+  \item \textbf{Read} --- load the assembly file, one instruction per line.
+  \item \textbf{Parse} --- split each line into tokens
+        (instruction name, registers, immediates).
+  \item \textbf{Encode} --- convert the tokens into a 32-bit integer
+        based on the instruction format.
+\end{enumerate}
+
+\subsubsection{Input Format}
+
+The input file contains one MIPS instruction per line.
+Operands are separated by commas and/or spaces:
+
+\begin{lstlisting}
+add $s0, $t0, $t1
+sub $s0, $s1, $s2
+addi $t0, $zero, 5
+\end{lstlisting}
+
+\subsubsection{Step 1: Parse a Line into Tokens}
+
+Each line is split into its components. For example:
+
+\begin{center}
+\texttt{"add \$s0, \$t0, \$t1"} $\;\Rightarrow\;$
+\texttt{("add" "\$s0" "\$t0" "\$t1")}
+\end{center}
+
+\subsubsection{Step 2: Determine Instruction Type}
+
+The instruction name determines the type and how the remaining
+fields are encoded. MIPS has three instruction formats:
+
+\paragraph{R-type} \texttt{[opcode 6][rs 5][rt 5][rd 5][shamt 5][funct 6]}
+
+Used for register-to-register operations.
+The opcode is always \texttt{000000}; the \textbf{funct} field
+distinguishes the operation.
+
+\paragraph{I-type} \texttt{[opcode 6][rs 5][rt 5][immediate 16]}
+
+Used for operations with an immediate value, loads, stores, and
+branches. The \textbf{opcode} determines the operation.
+
+\paragraph{J-type} \texttt{[opcode 6][address 26]}
+
+Used for jumps. The \textbf{opcode} determines the operation.
+
+\subsubsection{Step 3: Encode to Binary}
+
+\paragraph{Register name lookup.}
+Register names are converted to their 5-bit numbers:
+
+\begin{center}
+\begin{tabular}{llll}
+  \toprule
+  \textbf{Name} & \textbf{Number} &
+  \textbf{Name} & \textbf{Number} \\
+  \midrule
+  \texttt{\$zero} & 0  & \texttt{\$t0}--\texttt{\$t7} & 8--15 \\
+  \texttt{\$v0}--\texttt{\$v1} & 2--3 & \texttt{\$s0}--\texttt{\$s7} & 16--23 \\
+  \texttt{\$a0}--\texttt{\$a3} & 4--7 & \texttt{\$ra} & 31 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Instruction lookup.}
+A table maps the instruction name to its type, opcode, and funct:
+
+\begin{center}
+\begin{tabular}{lllll}
+  \toprule
+  \textbf{Instruction} & \textbf{Type} & \textbf{Opcode} & \textbf{Funct} & \textbf{Operands} \\
+  \midrule
+  \texttt{add}  & R & \texttt{000000} & \texttt{100000} & rd, rs, rt \\
+  \texttt{sub}  & R & \texttt{000000} & \texttt{100010} & rd, rs, rt \\
+  \texttt{and}  & R & \texttt{000000} & \texttt{100100} & rd, rs, rt \\
+  \texttt{or}   & R & \texttt{000000} & \texttt{100101} & rd, rs, rt \\
+  \texttt{slt}  & R & \texttt{000000} & \texttt{101010} & rd, rs, rt \\
+  \midrule
+  \texttt{addi} & I & \texttt{001000} & ---             & rt, rs, imm \\
+  \texttt{lw}   & I & \texttt{100011} & ---             & rt, offset(rs) \\
+  \texttt{sw}   & I & \texttt{101011} & ---             & rt, offset(rs) \\
+  \texttt{beq}  & I & \texttt{000100} & ---             & rs, rt, offset \\
+  \midrule
+  \texttt{j}    & J & \texttt{000010} & ---             & address \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Encoding example.}
+\texttt{add \$s0, \$t0, \$t1} is R-type:
+
+\begin{center}
+\begin{tabular}{llllll}
+  \toprule
+  opcode & rs (\$t0) & rt (\$t1) & rd (\$s0) & shamt & funct \\
+  \midrule
+  000000 & 01000 & 01001 & 10000 & 00000 & 100000 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Result: \texttt{00000001000010011000000000100000}
+
+\paragraph{Summary of the encoding flow.}
+
+\begin{enumerate}
+  \item Look up the instruction name $\Rightarrow$ get type, opcode, funct.
+  \item Look up each register name $\Rightarrow$ get 5-bit number.
+  \item Place each field at the correct bit position based on the type.
+  \item Combine into a single 32-bit integer.
+\end{enumerate}
+
 \section{Lisp Tips}
 
 \subsection{Defining Functions}
@@ -250,3 +370,227 @@ array elements, struct slots, etc.
 (defvar *pc* 0)
 (setf *pc* (+ *pc* 4))  ; *pc* is now 4
 \end{lstlisting}
+
+\subsection{\texttt{collect} --- Building a List from a Loop}
+
+\texttt{do} executes a side-effect and returns nothing useful.
+\texttt{collect} instead saves each value and returns the whole list
+when the loop finishes.
+
+\begin{lstlisting}
+;; do: prints each value, returns NIL
+(loop for i from 1 to 3
+      do (print i))
+;; prints 1, 2, 3
+; => NIL
+
+;; collect: returns a list
+(loop for i from 1 to 3
+      collect i)
+; => (1 2 3)
+\end{lstlisting}
+
+This is useful when you want to transform each element:
+
+\begin{lstlisting}
+(loop for i from 1 to 5
+      collect (* i i))
+; => (1 4 9 16 25)
+\end{lstlisting}
+
+A practical example --- read all lines from a file into a list:
+
+\begin{lstlisting}
+(defun read-assembly (path)
+  (with-open-file (s path)
+    (loop for line = (read-line s nil)
+          while line
+          collect line)))
+; => ("add $t0 $t1 $t2" "sub $s0 $s1 $s2" ...)
+\end{lstlisting}
+
+The key difference: use \texttt{do} when you want side-effects
+(printing, writing), use \texttt{collect} when you want to build
+a list of results.
+
+\subsection{Output and Debugging with \texttt{format}}
+
+\subsubsection{The First Argument of \texttt{format}}
+
+The first argument controls where the output goes:
+
+\begin{center}
+\begin{tabular}{llp{5cm}}
+  \toprule
+  \textbf{1st arg} & \textbf{Destination} & \textbf{Return value} \\
+  \midrule
+  \texttt{t}      & Screen (standard output) & \texttt{NIL} \\
+  \texttt{nil}    & Nowhere (builds a string) & The formatted string \\
+  stream          & That stream (e.g.\ file)  & \texttt{NIL} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}
+;; print to screen
+(format t "hello~%")
+
+;; return as string (no output)
+(format nil "~A + ~A = ~A" 1 2 3)
+; => "1 + 2 = 3"
+
+;; write to a file
+(with-open-file (s "out.txt" :direction :output)
+  (format s "hello~%"))
+\end{lstlisting}
+
+\subsubsection{\texttt{\~{}A} vs \texttt{\~{}S}}
+
+\texttt{format} has two main directives for printing values.
+\texttt{\~{}A} prints human-readable output (no delimiters),
+while \texttt{\~{}S} preserves the structure (quotes, parentheses).
+
+\begin{lstlisting}
+(format t "~A~%" '("add $t0" "sub $s0"))
+; => (add $t0 sub $s0)
+
+(format t "~S~%" '("add $t0" "sub $s0"))
+; => ("add $t0" "sub $s0")
+\end{lstlisting}
+
+Use \texttt{\~{}S} when you need to see the actual data structure
+--- where the parentheses are and which elements are strings.
+
+\subsubsection{\texttt{pprint} --- Pretty Printing}
+
+For deeply nested structures, \texttt{pprint} formats the output
+with indentation:
+
+\begin{lstlisting}
+(pprint '((1 2 (3 4)) (5 (6 7))))
+; => ((1 2 (3 4))
+; =>  (5 (6 7)))
+\end{lstlisting}
+
+\subsubsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{llp{5.5cm}}
+  \toprule
+  \textbf{Directive / Function} & \textbf{Example} & \textbf{Use case} \\
+  \midrule
+  \texttt{\~{}A}     & \texttt{(format t "\~{}A" x)}  & Human-readable, no delimiters \\
+  \texttt{\~{}S}     & \texttt{(format t "\~{}S" x)}  & Show structure (quotes, parens) \\
+  \texttt{\~{}B}     & \texttt{(format t "\~{}B" 42)} & Binary output \\
+  \texttt{\~{}32,'0B} & \texttt{(format t "\~{}32,'0B" 42)} & 32-bit zero-padded binary \\
+  \texttt{\~{}\%}    & \texttt{(format t "\~{}\%")}   & Newline \\
+  \texttt{pprint}    & \texttt{(pprint x)}            & Pretty-print nested structures \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{\texttt{map} --- Applying a Function to Each Element}
+
+The \texttt{map} family applies a function to every element of a
+sequence. Use these instead of \texttt{loop} when the operation is
+simple and uniform.
+
+\subsubsection{\texttt{mapcar} --- Transform and Collect}
+
+Applies a function to each element of a list and returns the results
+as a new list.
+
+\begin{lstlisting}
+(mapcar #'1+ '(1 2 3))
+; => (2 3 4)
+
+(mapcar #'string-upcase '("add" "sub"))
+; => ("ADD" "SUB")
+\end{lstlisting}
+
+\subsubsection{\texttt{mapc} --- Side-Effects Only}
+
+Like \texttt{mapcar}, but discards the results. Use when you only
+care about side-effects (e.g.\ printing).
+
+\begin{lstlisting}
+(mapc #'print '(10 20 30))
+;; prints 10, 20, 30
+\end{lstlisting}
+
+\subsubsection{\texttt{map} --- Works on Lists and Arrays}
+
+The general form that accepts any sequence type (lists and arrays).
+The first argument specifies the return type (\texttt{nil} to discard).
+
+\begin{lstlisting}
+(map 'list #'1+ #(10 20 30))
+; => (11 21 31)
+
+(map nil #'print #(10 20 30))
+;; prints 10, 20, 30 (result discarded)
+\end{lstlisting}
+
+\subsubsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{lllp{4cm}}
+  \toprule
+  \textbf{Function} & \textbf{Returns} & \textbf{Input} & \textbf{Use case} \\
+  \midrule
+  \texttt{mapcar} & Result list           & Lists  & Transform each element \\
+  \texttt{mapc}   & Original list         & Lists  & Side-effects only \\
+  \texttt{map}    & Specified type        & Lists \& arrays & General purpose \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+When you need conditionals or complex logic, use \texttt{loop} instead.
+
+\subsection{Identifying Functions vs Variables}
+
+In Lisp, position determines whether a symbol is a function or a variable.
+
+\paragraph{Rule: immediately after \texttt{(} is a function.}
+
+\begin{lstlisting}
+(remove #\, line)
+; ^func  ^arg  ^arg
+\end{lstlisting}
+
+\paragraph{\texttt{let} bindings define variables.}
+
+\begin{lstlisting}
+(let ((cleaned (remove #\, line)))
+;     ^var     ^value (remove is a function here)
+  cleaned)
+\end{lstlisting}
+
+\paragraph{\texttt{defun} parameter lists define variables.}
+
+\begin{lstlisting}
+(defun add (a b)
+;          ^var ^var
+  (+ a b))
+;  ^func ^var ^var
+\end{lstlisting}
+
+\paragraph{Check in the REPL with \texttt{describe}.}
+
+\begin{lstlisting}
+(describe 'remove)   ; shows it is a function
+(describe 'cleaned)  ; shows undefined or variable
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  \textbf{Position} & \textbf{Role} & \textbf{Example} \\
+  \midrule
+  After \texttt{(}            & Function call    & \texttt{(\textbf{remove} \#\textbackslash, line)} \\
+  \texttt{let ((x ...))}      & Variable binding & \texttt{(let ((\textbf{x} 42)) ...)} \\
+  \texttt{defun} param list   & Parameter        & \texttt{(defun f (\textbf{a} \textbf{b}) ...)} \\
+  Everywhere else             & Variable ref     & \texttt{(+ \textbf{a} \textbf{b})} \\
+  \bottomrule
+\end{tabular}
+\end{center}
