@@ -17,7 +17,7 @@
 		(let ((pos (position #\Space trimmed)))
 		  (if pos
 			  (cons (subseq trimmed 0 pos)
-					(split-by-one-space (subseq trimmed (1+ pos))))
+					(split-by-spaces (subseq trimmed (1+ pos))))
 			  (list trimmed))))))
 
 (pprint(split-by-one-space "add   $s0 $t0 $t1"))
