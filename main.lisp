@@ -10,7 +10,10 @@
 		  while line
 		  collect line)))
 
-;; rmeove conmma from string
-(format t (remove #\, "add $s0, $t0, $t1"))
+(defun split-by-one-space (line)
+    (loop for i = 0 then (1+ j)
+          as j = (position #\Space line :start i)
+          collect (subseq line i j)
+          while j))
 
-(position #\Space "add $s0 $t0 $t1" :start 4)
+(pprint(split-by-one-space "add $s0, $t0, $t1"))
