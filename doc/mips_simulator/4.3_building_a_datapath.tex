@@ -184,6 +184,19 @@ To print a number in binary:
 (format t "~B~%" 42)   ; => 101010
 \end{lstlisting}
 
+To print a number as a zero-padded 32-bit binary string:
+
+\begin{lstlisting}
+(format t "~32,'0B~%" 42)
+; => 00000000000000000000000000101010
+\end{lstlisting}
+
+\begin{itemize}
+  \item \texttt{32} --- minimum width of 32 digits
+  \item \texttt{'0} --- pad with \texttt{0}
+  \item \texttt{B} --- binary output
+\end{itemize}
+
 \subsection{Reading Files with \texttt{with-open-file}}
 
 \texttt{with-open-file} opens a file, binds it to a stream variable,
