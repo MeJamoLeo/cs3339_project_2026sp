@@ -52,7 +52,7 @@
 (setf (gethash '$s7 reg) 23)
 
 (setf (gethash '$t8 reg) 24)
-(setf (gethash '$t8 reg) 25)
+(setf (gethash '$t9 reg) 25)
 (setf (gethash '$k0 reg) 26)
 (setf (gethash '$k1 reg) 27)
 (setf (gethash '$gp reg) 28)
