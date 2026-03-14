@@ -10,12 +10,14 @@
 		  while line
 		  collect line)))
 
-(defun split-by-spaces (line)
-    (loop for i = 0 then (1+ j)
-          as j = (position #\Space line :start i)
-          as token = (subseq line i j)
-		  when (string/= token "")
-		  collect token
-          while j))
+(defun split-by-spaces (str)
+  (let ((trimmed (string-trim " " str)))
+	(if (string= trimmed "")
+		nil
+		(let ((pos (position #\Space trimmed)))
+		  (if pos
+			  (cons (subseq trimmed 0 pos)
+					(split-by-one-space (subseq trimmed (1+ pos))))
+			  (list trimmed))))))
 
 (pprint(split-by-one-space "add   $s0 $t0 $t1"))
