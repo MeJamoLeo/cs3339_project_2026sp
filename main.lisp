@@ -28,6 +28,25 @@
 				  ($t8 24) ($t9 25) ($k0 26) ($k1 27) ($gp 28) ($sp 29) ($fp 30) ($ra 31))
 	  do (setf (gethash name *reg*) num))
 
-(format t "~A~%" (hash-table-count *reg*))
-(format t "~B~%" (gethash '$zero *reg*))
-(format t "~B~%" (gethash '$s3 *reg*))
+(defparameter *instruction_memory* (make-hash-table))
+(loop for (name inst_type num) in
+	  '((add :r #b100000) ;;32, signed integer addition
+		(addi :i #b001000) ;; 8, add immediate
+		(sub :r #b100010) ;; 34, signed integer subtraction
+		(mult :r #b011000) ;; 24, integer multiplication
+		(and :r #b100100) ;; 36, bitwise and operation
+		(or :r #b100101) ;; 37, bitwise or operation
+		(sll :r #b000000) ;; 0, shift left logical
+		(srl :r #b000010) ;; 2, shift right logical
+		(lw :i #b100011) ;; 35, load word
+		(sw :i #b101011) ;; 43, store word
+		(beq :i #b000100) ;; 4, branch if equal to
+		(j :j #b000010) ;; 2, jump
+		(nop :r #b000000)) ;; 0, branch if equal to
+	  do (setf (gethash name *instruction_memory*) (list inst_type num)))
+
+(format t "~A~%" (hash-table-count *instruction_memory*))
+(format t "~B~%" (gethash 'add *instruction_memory*))
+(format t "~A~%" (gethash 'add *instruction_memory*))
+(format t "~B~%" (gethash 'lw *instruction_memory*))
+(format t "~A~%" (gethash 'lw *instruction_memory*))
