@@ -23,4 +23,6 @@
 (defun parse-assembly (path)
   (mapcar #'split-by-spaces (read-assembly path)))
 
-(pprint(parse-assembly "./input"))
+(defparameter x (make-hash-table))
+(setf (gethash 'yup x) '25)
+(pprint(gethash 'yup x))
