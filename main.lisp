@@ -10,4 +10,5 @@
 		  while line
 		  collect line)))
 
-(map nil #'print (read-assembly "./input"))
+;; rmeove conmma from string
+(format t (remove #\, "add $s0, $t0, $t1"))
