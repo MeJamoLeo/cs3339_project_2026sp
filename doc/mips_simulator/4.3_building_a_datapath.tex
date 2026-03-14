@@ -253,6 +253,8 @@ instead of nested parentheses. A loop is built by chaining clauses together:
   Variable      & Yes & \texttt{for x from a to b}   & Count from \texttt{a} to \texttt{b} \\
                 &     & \texttt{for x in list}        & Bind \texttt{x} to each element of \texttt{list} \\
                 &     & \texttt{for x = expr}         & Re-evaluate \texttt{expr} every iteration \\
+                &     & \texttt{for x = init then step} & \texttt{x} is \texttt{init} on the 1st iteration, \texttt{step} from the 2nd onward \\
+                &     & \texttt{as x = expr}          & Same as \texttt{for} (alias) \\
   \midrule
   Init          & No  & \texttt{with x = expr}        & Initialize \texttt{x} once before the loop starts \\
   \midrule
@@ -282,6 +284,31 @@ Each iteration of the loop proceeds in this order:
         \texttt{sum}, etc.
   \item Go back to step 1.
 \end{enumerate}
+
+\subsubsection{Cross-Referencing Variables in \texttt{loop}}
+
+Variables defined by \texttt{for}/\texttt{as} can reference each other.
+\texttt{loop} recognizes all variables before execution starts,
+so the order of declaration does not matter.
+
+\begin{lstlisting}
+(loop for i = 0 then (1+ j)   ; references j
+      as j = (position #\Space str :start i)
+      collect (subseq str i j)
+      while j)
+\end{lstlisting}
+
+This would \textbf{not} work with \texttt{let}, because \texttt{let}
+binds variables in order:
+
+\begin{lstlisting}
+;; ERROR: j is not yet defined
+(let ((i (1+ j))
+      (j 10))
+  ...)
+\end{lstlisting}
+
+This cross-referencing is a special feature of \texttt{loop}.
 
 \subsubsection{Examples}
 
@@ -594,3 +621,414 @@ In Lisp, position determines whether a symbol is a function or a variable.
   \bottomrule
 \end{tabular}
 \end{center}
+
+\paragraph{Function names can contain symbols.}
+
+Lisp symbol names allow characters like \texttt{=}, \texttt{/},
+\texttt{-}, and \texttt{*}. Names like \texttt{string=} are a
+single function name, not \texttt{string} plus \texttt{=}.
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  \textbf{Function} & \textbf{Parameters} & \textbf{Meaning} \\
+  \midrule
+  \texttt{string=}       & \texttt{(s1 s2)}  & String equals \\
+  \texttt{string/=}      & \texttt{(s1 s2)}  & String not equals \\
+  \texttt{string-trim}   & \texttt{(chars s)} & Remove \texttt{chars} from both ends of \texttt{s} \\
+  \texttt{string-upcase} & \texttt{(s)}      & Convert string to uppercase \\
+  \texttt{char=}         & \texttt{(c1 c2)}  & Character equals \\
+  \texttt{1+}            & \texttt{(n)}      & Add 1 \\
+  \texttt{1-}            & \texttt{(n)}      & Subtract 1 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{\texttt{cons} --- Building Lists}
+
+\subsubsection{What is a Cons Cell?}
+
+A \textbf{cons cell} is a pair of two pointers: \texttt{car} (left)
+and \texttt{cdr} (right). Every list in Lisp is built from cons cells
+chained together, ending with \texttt{nil}.
+
+\begin{lstlisting}
+(cons 1 nil)        ; => (1)
+(cons 1 (cons 2 nil))  ; => (1 2)
+(cons 1 (cons 2 (cons 3 nil)))  ; => (1 2 3)
+\end{lstlisting}
+
+\subsubsection{Tree Structure}
+
+\texttt{(cons 1 (cons 2 (cons 3 nil)))} produces the list
+\texttt{(1 2 3)}, which looks like this internally:
+
+\begin{center}
+\begin{tikzpicture}[
+  cell/.style={draw, minimum width=1cm, minimum height=0.5cm},
+  ptr/.style={->, thick},
+  val/.style={font=\ttfamily\small},
+  region/.style={draw, thick, minimum width=3.2cm},
+  rlabel/.style={font=\scriptsize\bfseries},
+  mcell/.style={draw, minimum width=0.85cm, minimum height=0.38cm,
+                font=\ttfamily\scriptsize, inner sep=1.5pt},
+  code/.style={font=\ttfamily\scriptsize, anchor=west},
+  clbl/.style={font=\scriptsize\color{black!50}, anchor=west}
+]
+  % ===== Column 1: Code (left) =====
+
+  \node[font=\small\bfseries] at (-4.2,0.8) {Code};
+
+  \node[code] (L1) at (-5.6,0)    {(\textcolor{kw}{cons} 1};
+  \node[clbl]       at (-1.8,0)    {; $\to$ c1};
+  \node[code] (L2) at (-5.1,-0.5)  {(\textcolor{kw}{cons} 2};
+  \node[clbl]       at (-1.8,-0.5)  {; $\to$ c2};
+  \node[code] (L3) at (-4.6,-1.0)  {(\textcolor{kw}{cons} 3 nil)))};
+  \node[clbl]       at (-1.8,-1.0)  {; $\to$ c3};
+
+  % ===== Column 2: Tree (center) =====
+
+  \node[font=\small\bfseries] at (2,0.8) {Tree};
+
+  % Cell 1 (c1)
+  \node[cell] at (0.5,0) {};
+  \draw (0.5,-0.25) -- (0.5,0.25);
+  \draw (0,-0.25) -- (0.49,0.25);
+  \draw (0.51,-0.25) -- (1,0.25);
+  \draw[ptr] (0.25,-0.25) -- (0.25,-0.85);
+  \node[val] at (0.25,-1.05) {1};
+  \draw[ptr] (0.75,-0.25) -- (1.85,-0.95);
+  \node[font=\scriptsize, anchor=east] at (-0.1,0) {c1};
+
+  % Cell 2 (c2)
+  \node[cell] at (2.1,-1.2) {};
+  \draw (2.1,-1.45) -- (2.1,-0.95);
+  \draw (1.6,-1.45) -- (2.09,-0.95);
+  \draw (2.11,-1.45) -- (2.6,-0.95);
+  \draw[ptr] (1.85,-1.45) -- (1.85,-2.05);
+  \node[val] at (1.85,-2.25) {2};
+  \draw[ptr] (2.35,-1.45) -- (3.45,-2.15);
+  \node[font=\scriptsize, anchor=east] at (1.5,-1.2) {c2};
+
+  % Cell 3 (c3)
+  \node[cell] at (3.7,-2.4) {};
+  \draw (3.7,-2.65) -- (3.7,-2.15);
+  \draw (3.2,-2.65) -- (3.69,-2.15);
+  \draw (3.71,-2.65) -- (4.2,-2.15);
+  \draw[ptr] (3.45,-2.65) -- (3.45,-3.25);
+  \node[val] at (3.45,-3.45) {3};
+  \draw[ptr] (3.95,-2.65) -- (3.95,-3.25);
+  \node[val] at (3.95,-3.45) {nil};
+  \node[font=\scriptsize, anchor=east] at (3.1,-2.4) {c3};
+
+  % ===== Column 3: Memory layout (right) =====
+
+  \node[font=\small\bfseries] at (7.5,0.8) {Memory};
+
+  % --- Stack ---
+  \node[region, minimum height=0.75cm, fill=red!5]
+    (stack) at (7.5,0) {};
+  \node[rlabel] at (7.5,0.15) {Stack};
+  \node[mcell] (svar) at (7.5,-0.15) {temp: @c1};
+
+  % --- Heap ---
+  \node[region, minimum height=2.2cm, fill=green!5]
+    (heap) at (7.5,-1.55) {};
+  \node[rlabel] at (7.5,-0.8) {Heap};
+
+  \node[font=\scriptsize] at (6.9,-1.05) {car};
+  \node[font=\scriptsize] at (8.1,-1.05) {cdr};
+
+  \node[mcell] (h1car) at (6.9,-1.35) {1};
+  \node[mcell] (h1cdr) at (8.1,-1.35) {@c2};
+  \draw (h1car.north east) -- (h1cdr.north west)
+        (h1car.south east) -- (h1cdr.south west);
+  \node[font=\ttfamily\scriptsize, anchor=east] at (6.2,-1.35) {c1};
+
+  \node[mcell] (h2car) at (6.9,-1.85) {2};
+  \node[mcell] (h2cdr) at (8.1,-1.85) {@c3};
+  \draw (h2car.north east) -- (h2cdr.north west)
+        (h2car.south east) -- (h2cdr.south west);
+  \node[font=\ttfamily\scriptsize, anchor=east] at (6.2,-1.85) {c2};
+
+  \node[mcell] (h3car) at (6.9,-2.35) {3};
+  \node[mcell] (h3cdr) at (8.1,-2.35) {nil};
+  \draw (h3car.north east) -- (h3cdr.north west)
+        (h3car.south east) -- (h3cdr.south west);
+  \node[font=\ttfamily\scriptsize, anchor=east] at (6.2,-2.35) {c3};
+
+  % --- Static ---
+  \node[region, minimum height=0.75cm, fill=blue!5]
+    (static) at (7.5,-3.1) {};
+  \node[rlabel] at (7.5,-2.95) {Static};
+  \node[mcell] (gvar) at (7.5,-3.3) {*x*: @c1};
+
+  % --- Text ---
+  \node[region, minimum height=0.5cm, fill=black!5]
+    (text) at (7.5,-3.8) {};
+  \node[rlabel] at (7.5,-3.8) {Text};
+
+  % Pointer arrows in memory
+  \draw[ptr, red!60] (svar.south) -- (h1car.north west);
+  \draw[ptr, blue!60] (gvar.north) -- (h3cdr.south east);
+
+  % Dashed lines: tree cells <-> heap rows
+  \draw[dashed, gray, thin] (1,0) -- (h1car.west);
+  \draw[dashed, gray, thin] (2.6,-1.2) -- (6.45,-1.85);
+  \draw[dashed, gray, thin] (4.2,-2.4) -- (6.45,-2.35);
+\end{tikzpicture}
+\end{center}
+
+A nested list like \texttt{(cons (cons 1 (cons 2 nil)) (cons 3 nil))}
+produces \texttt{((1 2) 3)}:
+
+\begin{center}
+\begin{tikzpicture}[
+  cell/.style={draw, minimum width=1cm, minimum height=0.5cm},
+  ptr/.style={->, thick},
+  val/.style={font=\ttfamily\small},
+  region/.style={draw, thick, minimum width=3.2cm},
+  rlabel/.style={font=\scriptsize\bfseries},
+  mcell/.style={draw, minimum width=0.85cm, minimum height=0.38cm,
+                font=\ttfamily\scriptsize, inner sep=1.5pt},
+  code/.style={font=\ttfamily\scriptsize, anchor=west},
+  clbl/.style={font=\scriptsize\color{black!50}, anchor=west}
+]
+  % ===== Column 1: Code (left) =====
+
+  \node[font=\small\bfseries] at (-4.2,1) {Code};
+
+  \node[code] at (-6,0.4)   {(\textcolor{kw}{cons}};
+  \node[code] at (-5.2,0)   {(\textcolor{kw}{cons} 1};
+  \node[clbl] at (-1.8,0)   {; $\to$ c2};
+  \node[code] at (-4.7,-0.4) {(\textcolor{kw}{cons} 2 nil))};
+  \node[clbl] at (-1.8,-0.4) {; $\to$ c3};
+  \node[code] at (-5.2,-0.8) {(\textcolor{kw}{cons} 3 nil))};
+  \node[clbl] at (-1.8,-0.8) {; $\to$ c4};
+  \node[clbl] at (-1.8,0.4)  {; $\to$ c1};
+
+  % ===== Column 2: Tree (center) =====
+
+  \node[font=\small\bfseries] at (2,1) {Tree};
+
+  % Root cell (c1)
+  \node[cell] at (2,0.3) {};
+  \draw (2,0.05) -- (2,0.55);
+  \draw (1.5,0.05) -- (1.99,0.55);
+  \draw (2.01,0.05) -- (2.5,0.55);
+  \draw[ptr] (1.75,0.05) -- (0.3,-0.75);
+  \draw[ptr] (2.25,0.05) -- (3.7,-0.75);
+  \node[font=\scriptsize, anchor=east] at (1.4,0.3) {c1};
+
+  % Left: cell for 1 (c2)
+  \node[cell] at (0,-1) {};
+  \draw (0,-1.25) -- (0,-0.75);
+  \draw (-0.5,-1.25) -- (-0.01,-0.75);
+  \draw (0.01,-1.25) -- (0.5,-0.75);
+  \draw[ptr] (-0.25,-1.25) -- (-0.25,-1.85);
+  \node[val] at (-0.25,-2.05) {1};
+  \draw[ptr] (0.25,-1.25) -- (1.35,-1.95);
+  \node[font=\scriptsize, anchor=east] at (-0.6,-1) {c2};
+
+  % Left: cell for 2 (c3)
+  \node[cell] at (1.6,-2.2) {};
+  \draw (1.6,-2.45) -- (1.6,-1.95);
+  \draw (1.1,-2.45) -- (1.59,-1.95);
+  \draw (1.61,-2.45) -- (2.1,-1.95);
+  \draw[ptr] (1.35,-2.45) -- (1.35,-3.05);
+  \node[val] at (1.35,-3.25) {2};
+  \draw[ptr] (1.85,-2.45) -- (1.85,-3.05);
+  \node[val] at (1.85,-3.25) {nil};
+  \node[font=\scriptsize, anchor=east] at (1,-2.2) {c3};
+
+  % Right: cell for 3 (c4)
+  \node[cell] at (4,-1) {};
+  \draw (4,-1.25) -- (4,-0.75);
+  \draw (3.5,-1.25) -- (3.99,-0.75);
+  \draw (4.01,-1.25) -- (4.5,-0.75);
+  \draw[ptr] (3.75,-1.25) -- (3.75,-1.85);
+  \node[val] at (3.75,-2.05) {3};
+  \draw[ptr] (4.25,-1.25) -- (4.25,-1.85);
+  \node[val] at (4.25,-2.05) {nil};
+  \node[font=\scriptsize, anchor=east] at (3.4,-1) {c4};
+
+  % ===== Column 3: Memory layout (right) =====
+
+  \node[font=\small\bfseries] at (7.5,1) {Memory};
+
+  % --- Stack ---
+  \node[region, minimum height=0.75cm, fill=red!5]
+    (stack) at (7.5,0.3) {};
+  \node[rlabel] at (7.5,0.45) {Stack};
+  \node[mcell] (svar) at (7.5,0.1) {temp: @c1};
+
+  % --- Heap ---
+  \node[region, minimum height=2.7cm, fill=green!5]
+    (heap) at (7.5,-1.45) {};
+  \node[rlabel] at (7.5,-0.45) {Heap};
+
+  \node[font=\scriptsize] at (6.9,-0.75) {car};
+  \node[font=\scriptsize] at (8.1,-0.75) {cdr};
+
+  \node[mcell] (h1car) at (6.9,-1.05) {@c2};
+  \node[mcell] (h1cdr) at (8.1,-1.05) {@c4};
+  \draw (h1car.north east) -- (h1cdr.north west)
+        (h1car.south east) -- (h1cdr.south west);
+  \node[font=\ttfamily\scriptsize, anchor=east] at (6.2,-1.05) {c1};
+
+  \node[mcell] (h2car) at (6.9,-1.55) {1};
+  \node[mcell] (h2cdr) at (8.1,-1.55) {@c3};
+  \draw (h2car.north east) -- (h2cdr.north west)
+        (h2car.south east) -- (h2cdr.south west);
+  \node[font=\ttfamily\scriptsize, anchor=east] at (6.2,-1.55) {c2};
+
+  \node[mcell] (h3car) at (6.9,-2.05) {2};
+  \node[mcell] (h3cdr) at (8.1,-2.05) {nil};
+  \draw (h3car.north east) -- (h3cdr.north west)
+        (h3car.south east) -- (h3cdr.south west);
+  \node[font=\ttfamily\scriptsize, anchor=east] at (6.2,-2.05) {c3};
+
+  \node[mcell] (h4car) at (6.9,-2.55) {3};
+  \node[mcell] (h4cdr) at (8.1,-2.55) {nil};
+  \draw (h4car.north east) -- (h4cdr.north west)
+        (h4car.south east) -- (h4cdr.south west);
+  \node[font=\ttfamily\scriptsize, anchor=east] at (6.2,-2.55) {c4};
+
+  % --- Static ---
+  \node[region, minimum height=0.75cm, fill=blue!5]
+    (static) at (7.5,-3.35) {};
+  \node[rlabel] at (7.5,-3.2) {Static};
+  \node[mcell] (gvar) at (7.5,-3.55) {*x*: @c1};
+
+  % --- Text ---
+  \node[region, minimum height=0.5cm, fill=black!5]
+    (text) at (7.5,-4.05) {};
+  \node[rlabel] at (7.5,-4.05) {Text};
+
+  % Pointer arrows in memory
+  \draw[ptr, red!60] (svar.south) -- (h1car.north west);
+  \draw[ptr, blue!60] (gvar.north) -- (h4cdr.south east);
+
+  % Dashed lines: tree cells <-> heap rows
+  \draw[dashed, gray, thin] (2.5,0.3) -- (6.45,-1.05);
+  \draw[dashed, gray, thin] (0.5,-1) -- (6.45,-1.55);
+  \draw[dashed, gray, thin] (2.1,-2.2) -- (6.45,-2.05);
+  \draw[dashed, gray, thin] (4.5,-1) -- (6.45,-2.55);
+\end{tikzpicture}
+\end{center}
+
+\subsubsection{Accessing Elements}
+
+\begin{lstlisting}
+(car '(1 2 3))    ; => 1       (first element)
+(cdr '(1 2 3))    ; => (2 3)   (rest of the list)
+(car (cdr '(1 2 3)))  ; => 2   (second element)
+\end{lstlisting}
+
+Shortcuts:
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  \textbf{Function} & \textbf{Equivalent} & \textbf{Result for \texttt{'(1 2 3)}} \\
+  \midrule
+  \texttt{first}  & \texttt{car}             & \texttt{1} \\
+  \texttt{second} & \texttt{car (cdr ...)}   & \texttt{2} \\
+  \texttt{third}  & \texttt{car (cdr (cdr ...))} & \texttt{3} \\
+  \texttt{rest}   & \texttt{cdr}             & \texttt{(2 3)} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Recursion}
+
+\subsubsection{Structure of a Recursive Function}
+
+A recursive function has two parts:
+\begin{enumerate}
+  \item \textbf{Base case} --- when to stop (return a value directly).
+  \item \textbf{Recursive case} --- call itself with a smaller input.
+\end{enumerate}
+
+\begin{lstlisting}
+(defun my-length (lst)
+  (if (null lst)              ; base case: empty list
+      0
+      (1+ (my-length (rest lst)))))  ; recursive case
+
+(my-length '(a b c))  ; => 3
+\end{lstlisting}
+
+\subsubsection{Trace: \texttt{(my-length '(a b c))}}
+
+\begin{center}
+\begin{tabular}{clllll}
+  \toprule
+  \textbf{Call} & \textbf{lst} & \texttt{(null lst)} &
+  \textbf{Action} & \textbf{Return} & \textbf{Stack} \\
+  \midrule
+  1 & \texttt{(a b c)} & \texttt{nil} &
+    \texttt{(1+ (my-length '(b c)))} & waits\ldots &
+    \texttt{[lst=(a b c)]} \\
+  2 & \texttt{(b c)} & \texttt{nil} &
+    \texttt{(1+ (my-length '(c)))} & waits\ldots &
+    \texttt{[lst=(b c)]} $\uparrow$ \\
+  3 & \texttt{(c)} & \texttt{nil} &
+    \texttt{(1+ (my-length nil))} & waits\ldots &
+    \texttt{[lst=(c)]} $\uparrow$ \\
+  4 & \texttt{nil} & \texttt{t} &
+    base case & \textbf{0} &
+    \texttt{[lst=nil]} $\uparrow$ \\
+  \midrule
+  \multicolumn{6}{l}{\textit{Unwinding (returning back up the stack):}} \\
+  \midrule
+  3 & & & \texttt{(1+ 0)} & \textbf{1} & pop \\
+  2 & & & \texttt{(1+ 1)} & \textbf{2} & pop \\
+  1 & & & \texttt{(1+ 2)} & \textbf{3} & pop \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Each call pushes a frame onto the stack and waits.
+When the base case returns \texttt{0}, the stack unwinds:
+each frame computes \texttt{(1+ result)} and returns.
+
+\subsubsection{Building a List with Recursion}
+
+\texttt{cons} is how recursive functions build a list result.
+Each call adds one element to the front:
+
+\begin{lstlisting}
+(defun add-one (lst)
+  (if (null lst)
+      nil
+      (cons (1+ (first lst))
+            (add-one (rest lst)))))
+
+(add-one '(10 20 30))  ; => (11 21 31)
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{cllll}
+  \toprule
+  \textbf{Call} & \textbf{lst} & \texttt{(first lst)} &
+  \textbf{Action} & \textbf{Return} \\
+  \midrule
+  1 & \texttt{(10 20 30)} & \texttt{10} &
+    \texttt{(cons 11 (add-one '(20 30)))} & waits\ldots \\
+  2 & \texttt{(20 30)} & \texttt{20} &
+    \texttt{(cons 21 (add-one '(30)))} & waits\ldots \\
+  3 & \texttt{(30)} & \texttt{30} &
+    \texttt{(cons 31 (add-one nil))} & waits\ldots \\
+  4 & \texttt{nil} & --- &
+    base case & \textbf{nil} \\
+  \midrule
+  \multicolumn{5}{l}{\textit{Unwinding:}} \\
+  \midrule
+  3 & & & \texttt{(cons 31 nil)} & \textbf{(31)} \\
+  2 & & & \texttt{(cons 21 '(31))} & \textbf{(21 31)} \\
+  1 & & & \texttt{(cons 11 '(21 31))} & \textbf{(11 21 31)} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
