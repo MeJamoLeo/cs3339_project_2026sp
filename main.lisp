@@ -12,3 +12,5 @@
 
 ;; rmeove conmma from string
 (format t (remove #\, "add $s0, $t0, $t1"))
+
+(position #\4 "2kewl4skwwl")
