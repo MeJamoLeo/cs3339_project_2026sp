@@ -20,4 +20,7 @@
 					(split-by-spaces (subseq trimmed (1+ pos))))
 			  (list trimmed))))))
 
-(pprint(split-by-one-space "add   $s0 $t0 $t1"))
+(defun parse-assembly (path)
+  (mapcar #'split-by-spaces (read-assembly path)))
+
+(pprint(parse-assembly "./input"))
