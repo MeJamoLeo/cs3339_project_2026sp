@@ -54,8 +54,8 @@
 (defun encode-instruction (instruction)
   (gethash instruction *instruction-memory-table*))
 
-(let ((line (car (parse-assembly "./input"))))
-  (let ((inst (first (encode-instruction (car line)))))
-	(cond ((eq :r inst) (pprint "R-type"))
-		  ((eq :i inst) (pprint "I-type"))
-		  ((eq :j inst) (pprint "J-type")))))
+(let* ((line (car (parse-assembly "./input")))
+	   (inst (first (encode-instruction (car line)))))
+  (cond ((eq :r inst) (pprint "R-type"))
+		((eq :i inst) (pprint "I-type"))
+		((eq :j inst) (pprint "J-type"))))
