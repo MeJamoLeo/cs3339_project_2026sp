@@ -51,8 +51,11 @@
 (defun parse-assembly (path)
   (mapcar #'split-by-spaces (read-assembly path)))
 
-(defun encode-instruction (instructions)
-  (mapcar (lambda (x) (car (cdr (gethash x *instruction-memory-table*)))) instructions))
+(defun encode-instruction (instruction)
+  (gethash instruction *instruction-memory-table*))
 
-(pprint (encode-instruction '("add" "sub" "addi" "lw")))
-
+(let ((line (car (parse-assembly "./input"))))
+  (let ((inst (first (encode-instruction (car line)))))
+	(cond ((eq :r inst) (pprint "R-type"))
+		  ((eq :i inst) (pprint "I-type"))
+		  ((eq :j inst) (pprint "J-type")))))
