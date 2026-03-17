@@ -5,7 +5,7 @@
   (with-open-file (input-stream path)
 	(loop for line = (read-line input-stream nil)
 		  while line
-		  collect (remove #\, line))))
+		  collect (remove #\, (substitute #\Space #\) (substitute #\Space #\( line))))))
 
 (defun split-by-spaces (str)
   (let ((trimmed (string-trim " " str)))
