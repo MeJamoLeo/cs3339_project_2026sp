@@ -11,7 +11,7 @@
 										   do (setf (gethash name ht) num))
 									 ht))
 
-(defparameter *instruction-memory-table* (let ((ht (make-hash-table :test #'eql)))
+(defparameter *instruction-memory-table* (let ((ht (make-hash-table :test #'equal)))
 										   (loop for (name inst-type num) in
 												 '(("add" :r #b100000) ;;32, signed integer addition
 												   ("addi" :i #b001000) ;; 8, add immediate
