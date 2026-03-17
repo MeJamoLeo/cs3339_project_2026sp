@@ -45,8 +45,14 @@
 		("nop" :r #b000000)) ;; 0, branch if equal to
 	  do (setf (gethash name *instruction-memory-table*) (list inst_type num)))
 
-(format t "~A~%" (hash-table-count *instruction_memory*))
-(format t "~B~%" (gethash 'add *instruction_memory*))
-(format t "~A~%" (gethash 'add *instruction_memory*))
-(format t "~B~%" (gethash 'lw *instruction_memory*))
-(format t "~A~%" (gethash 'lw *instruction_memory*))
+(defun encode-instruction (inst)
+  (gethash inst *instruction-memory-table*))
+
+(pprint *instruction-memory-table*)
+(format t "Hash Table Count: ~A~%" (hash-table-count *instruction-memory-table*))
+(format t "Instruction Memory Hash: ~B~%" (gethash "add" *instruction-memory-table*))
+(format t "Instruction Memory Hash: ~A~%" (gethash "add" *instruction-memory-table*))
+(format t "Instruction Memory Hash: ~B~%" (gethash "lw" *instruction-memory-table*))
+(format t "Instruction Memory Hash: ~A~%" (gethash "lw" *instruction-memory-table*))
+(pprint (encode-instruction "add"))
+
