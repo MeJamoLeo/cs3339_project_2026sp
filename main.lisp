@@ -12,21 +12,21 @@
 									 ht))
 
 (defparameter *instruction-memory-table* (let ((ht (make-hash-table :test #'equal)))
-										   (loop for (name inst-type num) in
-												 '(("add" :r #b100000) ;;32, signed integer addition
-												   ("addi" :i #b001000) ;; 8, add immediate
-												   ("sub" :r #b100010) ;; 34, signed integer subtraction
-												   ("mult" :r #b011000) ;; 24, integer multiplication
-												   ("and" :r #b100100) ;; 36, bitwise and operation
-												   ("or" :r #b100101) ;; 37, bitwise or operation
-												   ("sll" :r #b000000) ;; 0, shift left logical
-												   ("srl" :r #b000010) ;; 2, shift right logical
-												   ("lw" :i #b100011) ;; 35, load word
-												   ("sw" :i #b101011) ;; 43, store word
-												   ("beq" :i #b000100) ;; 4, branch if equal to
-												   ("j" :j #b000010) ;; 2, jump
+										   (loop for (name inst-type num order) in
+												 '(("add" :r #b100000 (rd rs rt)) ;;32, signed integer addition
+												   ("addi" :i #b001000 (rt rs imm)) ;; 8, add immediate
+												   ("sub" :r #b100010 (rd rs rt)) ;; 34, signed integer subtraction
+												   ;("mult" :r #b011000 ()) ;; 24, integer multiplication
+												   ("and" :r #b100100 (rd rs rt)) ;; 36, bitwise and operation
+												   ("or" :r #b100101 (rd rs rt)) ;; 37, bitwise or operation
+												   ("sll" :r #b000000 (rd rt shamt)) ;; 0, shift left logical
+												   ("srl" :r #b000010 (rd rt shamt)) ;; 2, shift right logical
+												   ("lw" :i #b100011 (rt imm rs)) ;; 35, load word
+												   ("sw" :i #b101011 (rt imm rs)) ;; 43, store word
+												   ("beq" :i #b000100 (rs rt imm)) ;; 4, branch if equal to
+												   ("j" :j #b000010 (addr)) ;; 2, jump
 												   ("nop" :r #b000000)) ;; 0, branch if equal to
-												 do (setf (gethash name ht) (list inst-type num)))
+												 do (setf (gethash name ht) (list inst-type num order)))
 										   ht))
 
 (defun adder (a b)
