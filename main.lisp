@@ -20,23 +20,6 @@
 (defun parse-assembly (path)
   (mapcar #'split-by-spaces (read-assembly path)))
 
-(defparameter *instruction-memory-table* (make-hash-table))
-(loop for (name inst_type num) in
-	  '(("add" :r #b100000) ;;32, signed integer addition
-		("addi" :i #b001000) ;; 8, add immediate
-		("sub" :r #b100010) ;; 34, signed integer subtraction
-		("mult" :r #b011000) ;; 24, integer multiplication
-		("and" :r #b100100) ;; 36, bitwise and operation
-		("or" :r #b100101) ;; 37, bitwise or operation
-		("sll" :r #b000000) ;; 0, shift left logical
-		("srl" :r #b000010) ;; 2, shift right logical
-		("lw" :i #b100011) ;; 35, load word
-		("sw" :i #b101011) ;; 43, store word
-		("beq" :i #b000100) ;; 4, branch if equal to
-		("j" :j #b000010) ;; 2, jump
-		("nop" :r #b000000)) ;; 0, branch if equal to
-	  do (setf (gethash name *instruction-memory-table*) (list inst_type num)))
-
 (defun encode-instruction (inst)
   (gethash inst *instruction-memory-table*))
 (defparameter *register-table* (let ((ht (make-hash-table :test #'equal)))
@@ -45,6 +28,23 @@
 										   do (setf (gethash name ht) num))
 									 ht))
 
+(defparameter *instruction-memory-table* (let ((ht (make-hash-table :test #'eql)))
+										   (loop for (name inst-type num) in
+												 '(("add" :r #b100000) ;;32, signed integer addition
+												   ("addi" :i #b001000) ;; 8, add immediate
+												   ("sub" :r #b100010) ;; 34, signed integer subtraction
+												   ("mult" :r #b011000) ;; 24, integer multiplication
+												   ("and" :r #b100100) ;; 36, bitwise and operation
+												   ("or" :r #b100101) ;; 37, bitwise or operation
+												   ("sll" :r #b000000) ;; 0, shift left logical
+												   ("srl" :r #b000010) ;; 2, shift right logical
+												   ("lw" :i #b100011) ;; 35, load word
+												   ("sw" :i #b101011) ;; 43, store word
+												   ("beq" :i #b000100) ;; 4, branch if equal to
+												   ("j" :j #b000010) ;; 2, jump
+												   ("nop" :r #b000000)) ;; 0, branch if equal to
+												 do (setf (gethash name ht) (list inst-type num)))
+										   ht))
 (pprint *instruction-memory-table*)
 (format t "Hash Table Count: ~A~%" (hash-table-count *instruction-memory-table*))
 (format t "Instruction Memory Hash: ~B~%" (gethash "add" *instruction-memory-table*))
