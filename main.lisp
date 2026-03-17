@@ -20,7 +20,7 @@
 (defun parse-assembly (path)
   (mapcar #'split-by-spaces (read-assembly path)))
 
-(defparameter *reg* (make-hash-table))
+(defparameter *register-table* (make-hash-table))
 (loop for (name num) in
 	  '(("$zero" 0) ("$at" 1) ("$v0" 2) ("$v1" 3) ("$a0" 4) ("$a1" 5) ("$a2" 6) ("$a3" 7)
 					("$t0" 8) ("$t1" 9) ("$t2" 10) ("$t3" 11) ("$t4" 12) ("$t5" 13) ("$t6" 14) ("$t7" 15)
@@ -28,7 +28,7 @@
 					("$t8" 24) ("$t9" 25) ("$k0" 26) ("$k1" 27) ("$gp" 28) ("$sp" 29) ("$fp" 30) ("$ra" 31))
 	  do (setf (gethash name *reg*) num))
 
-(defparameter *instruction_memory* (make-hash-table))
+(defparameter *instruction-memory-table* (make-hash-table))
 (loop for (name inst_type num) in
 	  '(("add" :r #b100000) ;;32, signed integer addition
 		("addi" :i #b001000) ;; 8, add immediate
