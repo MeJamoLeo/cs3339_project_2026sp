@@ -61,22 +61,26 @@
 		(nth (1+ pos) tokens)
 		nil)))
 
-(let* ((line '("add" "$t0" "$zero" "$t1"))
-       (instruction (gethash (car line) *instruction-memory-table*))
-       (inst-type  (first instruction))
-       (num  (second instruction))
-       (order  (third instruction)))
-  (cond ((eq :r inst-type) (pprint (list 0
-										 (gethash (get-field 'rs line order) *register-table*)
-										 (gethash (get-field 'rt line order) *register-table*)
-										 (gethash (get-field 'rd line order) *register-table*)
-										 (get-field 'shamt line order)
-										 num)))
-		((eq :i inst-type) (pprint (list num
-										 (gethash (get-field 'rs line order) *register-table*)
-										 (gethash (get-field 'rt line order) *register-table*)
-										 (gethash (get-field 'imm line order) *register-table*)
-										 )))
-		((eq :j inst-type) (pprint (list num
-										 (gethash (get-field 'addr line order) *register-table*)
-										 )))))
+(defun encode (line)
+  (labels ( (to-num (s)
+			 (if s (parse-integer s) 0)))
+	(let* ((instruction (gethash (car line) *instruction-memory-table*))
+		   (inst-type  (first instruction))
+		   (num  (second instruction))
+		   (order  (third instruction)))
+	  (cond ((eq :r inst-type) (pprint (list 0
+											 (gethash (get-field 'rs line order) *register-table*)
+											 (gethash (get-field 'rt line order) *register-table*)
+											 (gethash (get-field 'rd line order) *register-table*)
+											 (to-num (get-field 'shamt line order))
+											 num)))
+			((eq :i inst-type) (pprint (list num
+											 (gethash (get-field 'rs line order) *register-table*)
+											 (gethash (get-field 'rt line order) *register-table*)
+											 (to-num (get-field 'imm line order))
+											 )))
+			((eq :j inst-type) (pprint (list num
+											 (to-num(get-field 'addr line order))
+											 )))))))
+
+(mapcar #'encode (parse-assembly "./input"))
