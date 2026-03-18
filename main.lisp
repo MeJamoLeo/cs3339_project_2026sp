@@ -12,7 +12,7 @@
 									 ht))
 
 (defparameter *instruction-table* (let ((ht (make-hash-table :test #'equal)))
-										   (loop for (name inst-type num order) in
+										   (loop for (name inst-type opcode-or-funct order) in
 												 '(("add" :r #b100000 (rd rs rt)) ;;32, signed integer addition
 												   ("addi" :i #b001000 (rt rs imm)) ;; 8, add immediate
 												   ("sub" :r #b100010 (rd rs rt)) ;; 34, signed integer subtraction
@@ -26,7 +26,7 @@
 												   ("beq" :i #b000100 (rs rt imm)) ;; 4, branch if equal to
 												   ("j" :j #b000010 (addr)) ;; 2, jump
 												   ("nop" :r #b000000)) ;; 0, branch if equal to
-												 do (setf (gethash name ht) (list inst-type num order)))
+												 do (setf (gethash name ht) (list inst-type opcode-or-funct order)))
 										   ht))
 
 (defun adder (a b)
@@ -64,7 +64,7 @@
 			 (or (gethash (get-field field line order) *register-table*) 0)))
 	(let* ((instruction (gethash (car line) *instruction-table*))
 		   (inst-type  (first instruction))
-		   (num  (second instruction))
+		   (opcode-or-funct  (second instruction))
 		   (order  (third instruction)))
 	  (cond ((eq :r inst-type)
 			 (logior (ash 0 26)
@@ -72,14 +72,14 @@
 					 (ash (reg 'rt order) 16)
 					 (ash (reg 'rd order) 11)
 					 (ash (to-num (get-field 'shamt line order)) 6)
-					 num))
+					 opcode-or-funct))
 			((eq :i inst-type)
-			 (logior (ash num 26)
+			 (logior (ash opcode-or-funct 26)
 					 (ash (reg 'rs order) 21)
 					 (ash (reg 'rt order) 16)
 					 (logand #b1111111111111111 (to-num (get-field 'imm line order)))))
 			((eq :j inst-type)
-			 (logior (ash num 26)
+			 (logior (ash opcode-or-funct 26)
 					 (logand #b11111111111111111111111111 (to-num (get-field 'addr line order)))))))))
 
 (mapcar (lambda (line)
