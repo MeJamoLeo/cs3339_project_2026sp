@@ -25,7 +25,7 @@
 												   ("sw" :i #b101011 (rt imm rs)) ;; 43, store word
 												   ("beq" :i #b000100 (rs rt imm)) ;; 4, branch if equal to
 												   ("j" :j #b000010 (addr)) ;; 2, jump
-												   ("nop" :r #b000000)) ;; 0, branch if equal to
+												   ("nop" :r #b000000)) ;; 0, no operation
 												 do (setf (gethash name ht) (list inst-type opcode-or-funct order)))
 										   ht))
 
