@@ -51,10 +51,6 @@
 (defun parse-assembly (path)
   (mapcar #'split-by-spaces (read-assembly path)))
 
-(defun encode-instruction (instruction)
-  (gethash instruction *instruction-table*))
-
-
 (defun get-field (field tokens order)
   (let ((pos (position field order)))
 	(if pos
