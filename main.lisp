@@ -11,7 +11,7 @@
 										   do (setf (gethash name ht) num))
 									 ht))
 
-(defparameter *instruction-memory-table* (let ((ht (make-hash-table :test #'equal)))
+(defparameter *instruction-table* (let ((ht (make-hash-table :test #'equal)))
 										   (loop for (name inst-type num order) in
 												 '(("add" :r #b100000 (rd rs rt)) ;;32, signed integer addition
 												   ("addi" :i #b001000 (rt rs imm)) ;; 8, add immediate
@@ -52,7 +52,7 @@
   (mapcar #'split-by-spaces (read-assembly path)))
 
 (defun encode-instruction (instruction)
-  (gethash instruction *instruction-memory-table*))
+  (gethash instruction *instruction-table*))
 
 
 (defun get-field (field tokens order)
@@ -66,7 +66,7 @@
 			 (if s (parse-integer s) 0))
 		   (reg (field order)
 			 (or (gethash (get-field field line order) *register-table*) 0)))
-	(let* ((instruction (gethash (car line) *instruction-memory-table*))
+	(let* ((instruction (gethash (car line) *instruction-table*))
 		   (inst-type  (first instruction))
 		   (num  (second instruction))
 		   (order  (third instruction)))
