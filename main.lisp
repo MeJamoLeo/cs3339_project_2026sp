@@ -54,8 +54,29 @@
 (defun encode-instruction (instruction)
   (gethash instruction *instruction-memory-table*))
 
-(let* ((line (car (parse-assembly "./input")))
-	   (inst (first (encode-instruction (car line)))))
-  (cond ((eq :r inst) (pprint "R-type"))
-		((eq :i inst) (pprint "I-type"))
-		((eq :j inst) (pprint "J-type"))))
+
+(defun get-field (field tokens order)
+  (let ((pos (position field order)))
+	(if pos
+		(nth (1+ pos) tokens)
+		nil)))
+
+(let* ((line '("add" "$t0" "$zero" "$t1"))
+       (instruction (gethash (car line) *instruction-memory-table*))
+       (inst-type  (first instruction))
+       (num  (second instruction))
+       (order  (third instruction)))
+  (cond ((eq :r inst-type) (pprint (list 0
+										 (gethash (get-field 'rs line order) *register-table*)
+										 (gethash (get-field 'rt line order) *register-table*)
+										 (gethash (get-field 'rd line order) *register-table*)
+										 (get-field 'shamt line order)
+										 num)))
+		((eq :i inst-type) (pprint (list num
+										 (gethash (get-field 'rs line order) *register-table*)
+										 (gethash (get-field 'rt line order) *register-table*)
+										 (gethash (get-field 'imm line order) *register-table*)
+										 )))
+		((eq :j inst-type) (pprint (list num
+										 (gethash (get-field 'addr line order) *register-table*)
+										 )))))
