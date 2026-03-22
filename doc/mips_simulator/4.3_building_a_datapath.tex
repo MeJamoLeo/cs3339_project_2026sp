@@ -168,6 +168,36 @@ A function that takes two arguments and adds them:
 (add 3 5)  ; => 8
 \end{lstlisting}
 
+\subsection{Local Variables: \texttt{let} vs \texttt{let*}}
+
+\texttt{let} binds all variables at the same time.
+\texttt{let*} binds them in order, so earlier variables can be
+used by later ones.
+
+\begin{lstlisting}
+;; let: simultaneous -- a is NOT available in b's init
+(let ((a 1)
+      (b (+ a 1)))   ; ERROR: a is undefined
+  b)
+
+;; let*: sequential -- a IS available in b's init
+(let* ((a 1)
+       (b (+ a 1)))  ; OK: a = 1
+  b)
+; => 2
+\end{lstlisting}
+
+Use \texttt{let*} when bindings depend on each other:
+
+\begin{lstlisting}
+(let* ((line  (car (parse-assembly "./input")))
+       (info  (encode-instruction (first line))))
+  (first info))
+\end{lstlisting}
+
+This is the same idea as \texttt{loop}'s \texttt{for}/\texttt{as}
+cross-referencing variables (section 2.4.3).
+
 \subsection{Binary and Hexadecimal Literals}
 
 Common Lisp supports number literals in any base:
@@ -196,6 +226,67 @@ To print a number as a zero-padded 32-bit binary string:
   \item \texttt{'0} --- pad with \texttt{0}
   \item \texttt{B} --- binary output
 \end{itemize}
+
+\subsection{Bitwise Operations}
+
+\subsubsection{\texttt{ash} --- Arithmetic Shift}
+
+Shifts a number left (positive) or right (negative) by \texttt{n} bits.
+
+\begin{lstlisting}
+(ash 1 4)     ; => 16    (shift left 4 bits: 1 -> 10000)
+(ash 16 -2)   ; => 4     (shift right 2 bits: 10000 -> 100)
+(ash 8 21)    ; => 16777216  (place register 8 at bits 25-21)
+\end{lstlisting}
+
+\subsubsection{\texttt{logior} --- Logical OR}
+
+Combines multiple values by OR-ing their bits together.
+Used to merge bit fields into a single integer.
+
+\begin{lstlisting}
+(logior #b1100 #b0011)  ; => 15 (#b1111)
+
+;; R-type: [opcode 6][rs 5][rt 5][rd 5][shamt 5][funct 6]
+(logior (ash 0 26)      ; opcode
+        (ash 8 21)      ; rs = $t0
+        (ash 9 16)      ; rt = $t1
+        (ash 16 11)     ; rd = $s0
+        (ash 0 6)       ; shamt
+        32)             ; funct = add
+; => 17064992
+(format t "~32,'0B~%" 17064992)
+; => 00000001000010011000000000100000
+\end{lstlisting}
+
+\subsubsection{\texttt{logand} --- Logical AND}
+
+Masks bits. Used to limit a value to a certain bit width.
+
+\begin{lstlisting}
+(logand #b1111 #b101010)  ; => 10 (#b1010)
+
+;; Keep only the lower 16 bits (for I-type immediate)
+(logand #xFFFF 65540)     ; => 4
+;; Keep only the lower 26 bits (for J-type address)
+(logand #x3FFFFFF 100)    ; => 100
+\end{lstlisting}
+
+\subsubsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{llp{5.5cm}}
+  \toprule
+  \textbf{Function} & \textbf{Example} & \textbf{Use case} \\
+  \midrule
+  \texttt{ash}    & \texttt{(ash 8 21)}            & Place a field at a bit position \\
+  \texttt{logior} & \texttt{(logior (ash a 26) b)}  & Combine fields into one integer \\
+  \texttt{logand} & \texttt{(logand \#xFFFF n)}     & Limit to N bits (mask) \\
+  \texttt{lognot} & \texttt{(lognot \#b1010)}       & Flip all bits \\
+  \texttt{logxor} & \texttt{(logxor \#b1100 \#b1010)} & XOR \\
+  \bottomrule
+\end{tabular}
+\end{center}
 
 \subsection{Reading Files with \texttt{with-open-file}}
 
@@ -1044,4 +1135,56 @@ Each call adds one element to the front:
   \bottomrule
 \end{tabular}
 \end{center}
+
+\subsection{Key--Value Lookup: \texttt{assoc} vs \texttt{gethash}}
+
+Both look up a value by key, but use different data structures.
+
+\subsubsection{\texttt{assoc} --- Association List (alist)}
+
+An alist is a list of pairs. \texttt{assoc} searches linearly from the
+front.
+
+\begin{lstlisting}
+(defvar *regs* '(("$zero" 0) ("$t0" 8) ("$s0" 16)))
+
+(assoc "$t0" *regs* :test #'equal)
+; => ("$t0" 8)
+
+(cadr (assoc "$t0" *regs* :test #'equal))
+; => 8
+\end{lstlisting}
+
+\subsubsection{\texttt{gethash} --- Hash Table}
+
+A hash table provides constant-time lookup.
+Requires \texttt{make-hash-table} and \texttt{setf} to build.
+
+\begin{lstlisting}
+(defparameter *regs* (make-hash-table :test #'equal))
+(setf (gethash "$t0" *regs*) 8)
+
+(gethash "$t0" *regs*)
+; => 8
+\end{lstlisting}
+
+\subsubsection{Comparison}
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  & \textbf{\texttt{assoc} (alist)} & \textbf{\texttt{gethash} (hash table)} \\
+  \midrule
+  Data structure & List of lists & Hash table \\
+  Lookup speed   & O(n) & O(1) \\
+  Easy to create & \texttt{'((...) (...))} & \texttt{make-hash-table} + \texttt{setf} \\
+  Best for       & Small / static data & Large / frequent lookup \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+When using string keys, both need \texttt{equal} for comparison:
+\texttt{assoc} takes \texttt{:test \#'equal},
+\texttt{make-hash-table} takes \texttt{:test \#'equal}.
+The default \texttt{eql} only works for symbols and numbers.
 
