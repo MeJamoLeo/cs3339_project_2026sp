@@ -575,6 +575,39 @@ The first argument controls where the output goes:
   (format s "hello~%"))
 \end{lstlisting}
 
+\subsubsection{How \texttt{\~{}} Directives Work}
+
+\texttt{\~{}} is the escape character in \texttt{format} strings.
+Each \texttt{\~{}X} directive consumes one argument from the argument
+list and prints it in the specified format.
+
+\begin{lstlisting}
+(format t "~A is ~A" "Lisp" "fun")
+;        ^arg1    ^arg2
+; => "Lisp is fun"
+\end{lstlisting}
+
+Some directives like \texttt{\~{}\%} (newline) do not consume arguments.
+
+\paragraph{Padding and fill character.}
+
+A number before the directive sets the minimum width.
+A fill character can be specified with \texttt{'char}.
+
+\begin{lstlisting}
+(format t "~B" 5)        ; => "101"
+(format t "~8B" 5)       ; => "     101"    (8 digits, space-padded)
+(format t "~8,'0B" 5)    ; => "00000101"    (8 digits, zero-padded)
+(format t "~32,'0B" 5)   ; => 32-bit zero-padded binary
+\end{lstlisting}
+
+The pattern \texttt{\~{}32,'0B} means:
+\begin{itemize}
+  \item \texttt{32} --- minimum 32 characters wide
+  \item \texttt{'0} --- fill empty positions with \texttt{0}
+  \item \texttt{B} --- binary output
+\end{itemize}
+
 \subsubsection{\texttt{\~{}A} vs \texttt{\~{}S}}
 
 \texttt{format} has two main directives for printing values.
@@ -614,7 +647,8 @@ with indentation:
   \texttt{\~{}S}     & \texttt{(format t "\~{}S" x)}  & Show structure (quotes, parens) \\
   \texttt{\~{}B}     & \texttt{(format t "\~{}B" 42)} & Binary output \\
   \texttt{\~{}32,'0B} & \texttt{(format t "\~{}32,'0B" 42)} & 32-bit zero-padded binary \\
-  \texttt{\~{}\%}    & \texttt{(format t "\~{}\%")}   & Newline \\
+  \texttt{\~{}C}     & \texttt{(format t "\~{}C" \#\textbackslash Tab)} & Print a character (e.g.\ tab) \\
+  \texttt{\~{}\%}    & \texttt{(format t "\~{}\%")}   & Newline (no argument consumed) \\
   \texttt{pprint}    & \texttt{(pprint x)}            & Pretty-print nested structures \\
   \bottomrule
 \end{tabular}
