@@ -31,6 +31,10 @@
 					(split-by-spaces (subseq trimmed (1+ pos))))
 			  (list trimmed))))))
 
+;; make 2D list of tokens from a assembly file
+;; - depends on
+;;     - read-assembly
+;;     - split-by-spaces
 (defun parse-assembly (path)
   (mapcar #'split-by-spaces (read-assembly path)))
 
