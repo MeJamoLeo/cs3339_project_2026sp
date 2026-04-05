@@ -1,3 +1,6 @@
+;; program counter
+(defparameter *pc* 0)
+
 (defparameter *register-table* (let ((ht (make-hash-table :test #'equal)))
 								 (loop for (name num) in
 									   '(("$zero" 0) ("$at" 1) ("$v0" 2) ("$v1" 3)
