@@ -2,12 +2,23 @@
 ;; Assemblar
 ;; ====================================
 
-;; read lines from a file with triming comma, space, brakets.
-(defun read-assembly (path)
+;; make a list of lines from input file
+(defun read-lines (path)
   (with-open-file (input-stream path)
 	(loop for line = (read-line input-stream nil)
 		  while line
-		  collect (remove #\, (substitute #\Space #\) (substitute #\Space #\( line))))))
+		  collect line)))
+
+;; remove comma, and brackets
+(defun normalize (line)
+  (remove #\, (substitute #\Space #\) (substitute #\Space #\( line))))
+
+;; read a file in asesmbly
+;; - depends on
+;;     - normalize
+;;     - read-lines
+(defun read-assembly (path)
+  (mapcar #'normalize (read-lines path)))
 
 ;; make a list form string with spliting by space
 (defun split-by-spaces (str)
