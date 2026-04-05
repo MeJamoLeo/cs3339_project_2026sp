@@ -75,6 +75,13 @@
 		(nth (1+ pos) tokens)
 		nil)))
 
+(defun encode-r (rs rt rd shamt funct)
+  (logior (ash rs 21)
+		  (ash rt 16)
+		  (ash rd 11)
+		  (ash shamt 6)
+		  funct))
+
 (defun encode (line)
   (labels ((to-num (s)
 			 (if s (parse-integer s) 0))

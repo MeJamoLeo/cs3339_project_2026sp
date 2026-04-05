@@ -35,6 +35,14 @@
 ;; J-type: j 0 → layout = (addr)
 (assert (equal (get-operand 'addr '("j" "0") '(addr))
 			   "0"))
+
+;; ------------------------------------ encode-r
+;; add $s0, $t0, $t1
+;; -> opcode=0, rs=$t0=8, rt=$t1=9, rd=$s0=16, shamt=0, funct=32
+;;  opcode   rs     rt     rd    shamt   funct
+;; [000000][01000][01001][10000][00000][100000]
+(assert (= (encode-r 8 9 16 0 #b100000) #b00000001000010011000000000100000))
+
 ;; ====================================
 ;; CPU
 ;; ====================================
@@ -46,4 +54,4 @@
 
 
 
-(format t "✅ All test passed!!")
+(format t "✅ All test passed!!~%")
