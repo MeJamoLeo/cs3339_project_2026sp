@@ -111,7 +111,7 @@
   (+ a b))
 
 (defun decode (value)
-  (let ((inst25-0 (logand #b1111111111111111111111111 value)) ;; addr
+  (let ((inst25-0 (logand #b11111111111111111111111111 value)) ;; addr
 		(inst10-6 (logand #b11111 (ash value -6))) ;; shamt
 		(inst31-26 (ash value -26)) ;; opcode to Controller
 		(inst25-21 (logand #b11111 (ash value -21))) ;; rs to Register Read1
