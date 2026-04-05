@@ -1,5 +1,27 @@
-;; program counter
-(defparameter *pc* 0)
+;; ====================================
+;; Assemblar
+;; ====================================
+
+;; read lines from a file with triming comma, space, brakets.
+(defun read-assembly (path)
+  (with-open-file (input-stream path)
+	(loop for line = (read-line input-stream nil)
+		  while line
+		  collect (remove #\, (substitute #\Space #\) (substitute #\Space #\( line))))))
+
+;; make a list form string with spliting by space
+(defun split-by-spaces (str)
+  (let ((trimmed (string-trim " " str)))
+	(if (string= trimmed "")
+		nil
+		(let ((pos (position #\Space trimmed)))
+		  (if pos
+			  (cons (subseq trimmed 0 pos)
+					(split-by-spaces (subseq trimmed (1+ pos))))
+			  (list trimmed))))))
+
+(defun parse-assembly (path)
+  (mapcar #'split-by-spaces (read-assembly path)))
 
 (defparameter *register-table* (let ((ht (make-hash-table :test #'equal)))
 								 (loop for (name num) in
@@ -32,28 +54,6 @@
 										  do (setf (gethash name ht) (list inst-type opcode-or-funct order)))
 									ht))
 
-(defun adder (a b)
-  (+ a b))
-
-(defun read-assembly (path)
-  (with-open-file (input-stream path)
-	(loop for line = (read-line input-stream nil)
-		  while line
-		  collect (remove #\, (substitute #\Space #\) (substitute #\Space #\( line))))))
-
-(defun split-by-spaces (str)
-  (let ((trimmed (string-trim " " str)))
-	(if (string= trimmed "")
-		nil
-		(let ((pos (position #\Space trimmed)))
-		  (if pos
-			  (cons (subseq trimmed 0 pos)
-					(split-by-spaces (subseq trimmed (1+ pos))))
-			  (list trimmed))))))
-
-(defun parse-assembly (path)
-  (mapcar #'split-by-spaces (read-assembly path)))
-
 (defun get-field (field tokens order)
   (let ((pos (position field order)))
 	(if pos
@@ -85,6 +85,16 @@
 			 (logior (ash opcode-or-funct 26)
 					 (logand #b11111111111111111111111111 (to-num (get-field 'addr line order)))))))))
 
+
+;; ====================================
+;; CPU
+;; ====================================
+;; program counter
+(defparameter *pc* 0)
+
+(defun adder (a b)
+  (+ a b))
+
 (defun decode (value)
   (let ((inst25-0 (logand #b1111111111111111111111111 value)) ;; addr
 		(inst10-6 (logand #b11111 (ash value -6))) ;; shamt
@@ -103,6 +113,10 @@
 	(format t "imm\(~A\)~C~16,'0B~%"  inst15-0 #\Tab inst15-0)
 	(format t "addr\(~A\)~C~26,'0B~%"  inst25-0 #\Tab inst25-0)))
 
+
+;; ====================================
+;; Debug
+;; ====================================
 (mapcar (lambda (line)
 		  (format t "~A~%" "=======================================")
 		  (format t "~A~%" line)
