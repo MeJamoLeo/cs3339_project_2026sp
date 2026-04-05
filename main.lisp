@@ -132,11 +132,11 @@
 ;; ====================================
 ;; Debug
 ;; ====================================
+(defun debug-print ()
 (mapcar (lambda (line)
 		  (format t "~A~%" "=======================================")
 		  (format t "~A~%" line)
 		  (format t "~A~%" "---------------------------------------")
 		  (decode (encode line))
 		  (format t "~A~%~%" "======================================="))
-		(parse-assembly "./input"))
-
+		(parse-assembly "./input")))
