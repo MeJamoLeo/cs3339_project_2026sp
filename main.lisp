@@ -88,6 +88,10 @@
 		   (ash rt 16)
 		   (logand #b1111111111111111 imm)))
 
+(defun encode-j (opcode addr)
+  (logior (ash opcode 26)
+		  (logand #b11111111111111111111111111 addr)))
+
 (defun encode (line)
   (labels ((to-num (s)
 			 (if s (parse-integer s) 0))
