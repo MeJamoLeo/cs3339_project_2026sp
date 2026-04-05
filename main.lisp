@@ -82,6 +82,12 @@
 		  (ash shamt 6)
 		  funct))
 
+(defun encode-i (opcode rs rt imm)
+  (logior  (ash opcode 26)
+		   (ash rs 21)
+		   (ash rt 16)
+		   (logand #b1111111111111111 imm)))
+
 (defun encode (line)
   (labels ((to-num (s)
 			 (if s (parse-integer s) 0))
