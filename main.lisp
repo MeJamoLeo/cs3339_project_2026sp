@@ -66,11 +66,11 @@
 											("beq" :i #b000100 (rs rt imm)) ;; 4, branch if equal to
 											("j" :j #b000010 (addr)) ;; 2, jump
 											("nop" :r #b000000)) ;; 0, no operation
-										  do (setf (gethash name ht) (list inst-type opcode-or-funct fields)))
+										  do (setf (gethash name ht) (list :type inst-type :code opcode-or-funct :fields fields)))
 									ht))
 
-(defun get-field (field tokens fields)
-  (let ((pos (position field fields)))
+(defun get-operand (field tokens layout)
+  (let ((pos (position field layout)))
 	(if pos
 		(nth (1+ pos) tokens)
 		nil)))
@@ -79,26 +79,26 @@
   (labels ((to-num (s)
 			 (if s (parse-integer s) 0))
 		   (reg (field fields)
-			 (or (gethash (get-field field line fields) *register-table*) 0)))
+			 (or (gethash (get-operand field line fields) *register-table*) 0)))
 	(let* ((instruction (gethash (car line) *instruction-table*))
-		   (inst-type  (first instruction))
-		   (opcode-or-funct  (second instruction))
-		   (fields  (third instruction)))
+		   (inst-type  (getf instruction :type))
+		   (opcode-or-funct (getf instruction :code))
+		   (fields  (getf instruction :fields)))
 	  (cond ((eq :r inst-type)
 			 (logior (ash 0 26)
 					 (ash (reg 'rs fields) 21)
 					 (ash (reg 'rt fields) 16)
 					 (ash (reg 'rd fields) 11)
-					 (ash (to-num (get-field 'shamt line fields)) 6)
+					 (ash (to-num (get-operand 'shamt line fields)) 6)
 					 opcode-or-funct))
 			((eq :i inst-type)
 			 (logior (ash opcode-or-funct 26)
 					 (ash (reg 'rs fields) 21)
 					 (ash (reg 'rt fields) 16)
-					 (logand #b1111111111111111 (to-num (get-field 'imm line fields)))))
+					 (logand #b1111111111111111 (to-num (get-operand 'imm line fields)))))
 			((eq :j inst-type)
 			 (logior (ash opcode-or-funct 26)
-					 (logand #b11111111111111111111111111 (to-num (get-field 'addr line fields)))))))))
+					 (logand #b11111111111111111111111111 (to-num (get-operand 'addr line fields)))))))))
 
 
 ;; ====================================
