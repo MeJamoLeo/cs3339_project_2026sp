@@ -92,11 +92,12 @@
   (logior (ash opcode 26)
 		  (logand #b11111111111111111111111111 addr)))
 
+(defun to-num (s)
+  (if s (parse-integer s) 0))
+
 (defun encode (line)
-  (labels ((to-num (s)
-			 (if s (parse-integer s) 0))
-		   (reg (field fields)
-			 (or (gethash (get-operand field line fields) *register-table*) 0)))
+  (labels ((reg (field layout)
+			 (or (gethash (get-operand field line layout) *register-table*) 0)))
 	(let* ((instruction (gethash (car line) *instruction-table*))
 		   (inst-type  (getf instruction :type))
 		   (opcode-or-funct (getf instruction :code))
