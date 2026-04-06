@@ -153,3 +153,43 @@
 (defun write-register (num value)
   (unless (zerop num)
 	(setf (aref *register* num) value)))
+
+;; controller
+(defun control (opcode)
+  (case opcode
+	(#b000000 ;; R-type
+	 `(:reg-dst		1
+	   :alu-src		0
+	   :mem-to-reg	0
+	   :reg-write	1
+	   :mem-read	0
+	   :mem-write	0
+	   :branch		0
+	   :alu-op		10))
+	(#b100011 ;; lw
+	 `(:reg-dst		0
+	   :alu-src		1
+	   :mem-to-reg	1
+	   :reg-write	1
+	   :mem-read	1
+	   :mem-write	0
+	   :branch		0
+	   :alu-op		00))
+	(#b101011 ;; sw
+	 `(:reg-dst		nil
+	   :alu-src		1
+	   :mem-to-reg	nil
+	   :reg-write	0
+	   :mem-read	0
+	   :mem-write	1
+	   :branch		0
+	   :alu-op		00))
+	(#b000100 ;; beq
+	 `(:reg-dst		nil
+	   :alu-src		0
+	   :mem-to-reg	nil
+	   :reg-write	0
+	   :mem-read	0
+	   :mem-write	0
+	   :branch		1
+	   :alu-op		01))))

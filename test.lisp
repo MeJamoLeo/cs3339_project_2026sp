@@ -144,9 +144,33 @@
 (write-register 31 9999)
 (assert (= (read-register 31) 9999))
 
+;; ------------------------------------ control-signals
+;; R-type (opcode=0)
+(let ((ctrl (control #b000000)))
+  (assert (= (getf ctrl :reg-dst) 1))
+  (assert (= (getf ctrl :alu-src) 0))
+  (assert (= (getf ctrl :reg-write) 1))
+  (assert (= (getf ctrl :mem-read) 0))
+  (assert (= (getf ctrl :mem-write) 0))
+  (assert (= (getf ctrl :branch) 0)))
+
+;; lw (opcode=35)
+(let ((ctrl (control #b100011)))
+  (assert (= (getf ctrl :mem-read) 1))
+  (assert (= (getf ctrl :reg-write) 1))
+  (assert (= (getf ctrl :alu-src) 1)))
+
+;; sw (opcode=43)
+(let ((ctrl (control #b101011)))
+  (assert (= (getf ctrl :mem-write) 1))
+  (assert (= (getf ctrl :reg-write) 0)))
+
+;; beq (opcode=4)
+(let ((ctrl (control #b000100)))
+  (assert (= (getf ctrl :branch) 1))
+  (assert (= (getf ctrl :reg-write) 0)))
+
 (format t "~%✅ All unit test passed!!")
-
-
 
 ;; ------------------------------------ encode
 (assert (= (encode '("nop")) #b00000000000000000000000000000000))
