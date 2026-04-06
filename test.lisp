@@ -136,8 +136,6 @@
 (assert (= (sign-extend #b0000000000001010)
 		   #b00000000000000000000000000001010))
 
-(format t "✅ All unit test passed!!~%")
-
 ;; ------------------------------------ register
 (assert (= (read-register 0) 0))
 (assert (= (read-register 31) 0))
