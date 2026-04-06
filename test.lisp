@@ -184,6 +184,20 @@
 (assert (= (alu-control #b10 #b100101) #b0001)) ;; or   (funct=37)
 (assert (= (alu-control #b10 #b101010) #b0111)) ;; slt  (funct=42)
 
+;; ------------------------------------ alu
+;; AND ALUOp=0000
+(assert (equal (alu 1 1 #b0000) '(1 0)))
+(assert (equal (alu 1 0 #b0000) '(0 1)))
+(assert (equal (alu 0 1 #b0000) '(0 1)))
+(assert (equal (alu 0 0 #b0000) '(0 1)))
+(assert (equal (alu #b10001010 #b01111010  #b0000) '(#b00001010 0)))
+(assert (equal (alu #b10001010 #b01110101  #b0000) '(#b00000000 1)))
+;; OR ALUOp=0001
+; (assert (equal (alu 1 1 #b0001) '(1 0)))
+; (assert (equal (alu 1 0 #b0001) '(0 1)))
+; (assert (equal (alu 0 1 #b0001) '(0 1)))
+; (assert (equal (alu 0 0 #b0001) '(0 1)))
+
 (format t "~%✅ All unit test passed!!")
 
 ;; ------------------------------------ encode
