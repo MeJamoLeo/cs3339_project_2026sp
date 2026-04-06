@@ -1223,6 +1223,173 @@ When using string keys, both need \texttt{equal} for comparison:
 \texttt{make-hash-table} takes \texttt{:test \#'equal}.
 The default \texttt{eql} only works for symbols and numbers.
 
+\subsection{Conditionals}
+
+\subsubsection{\texttt{if} --- Two-Way Branch}
+
+\texttt{if} evaluates a test. If true, it runs the \emph{then} form;
+otherwise it runs the \emph{else} form.
+
+\begin{lstlisting}
+(if test
+    then-form
+    else-form)
+
+(if (> x 0)
+    "positive"
+    "not positive")
+\end{lstlisting}
+
+Important: in Common Lisp, only \texttt{nil} is false.
+Everything else is true --- including \texttt{0}, \texttt{""}, and
+\texttt{()}.
+
+\begin{lstlisting}
+(if nil  "yes" "no")  ; => "no"   (nil is false)
+(if 0    "yes" "no")  ; => "yes"  (0 is NOT false)
+(if '()  "yes" "no")  ; => "no"   (() is nil)
+(if t    "yes" "no")  ; => "yes"
+\end{lstlisting}
+
+\texttt{if} only allows one form per branch. Use \texttt{progn} to
+run multiple forms:
+
+\begin{lstlisting}
+(if (zerop n)
+    (progn
+      (format t "zero!~%")
+      0)
+    (+ n 1))
+\end{lstlisting}
+
+\subsubsection{\texttt{when} and \texttt{unless} --- One-Way Branch}
+
+\texttt{when} runs its body only if the test is true.
+\texttt{unless} runs its body only if the test is false.
+Both allow multiple forms without \texttt{progn}.
+
+\begin{lstlisting}
+;; when: do something only if true
+(when (> x 0)
+  (format t "positive~%")
+  x)
+
+;; unless: do something only if false
+(unless (zerop num)
+  (setf (aref *registers* num) value))
+\end{lstlisting}
+
+\texttt{unless} is commonly used for guard clauses:
+
+\begin{lstlisting}
+;; "write to register unless it is $zero"
+(defun write-register (num value)
+  (unless (zerop num)
+    (setf (aref *registers* num) value)))
+\end{lstlisting}
+
+\subsubsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{llp{5cm}}
+  \toprule
+  \textbf{Form} & \textbf{Syntax} & \textbf{Use case} \\
+  \midrule
+  \texttt{if}     & \texttt{(if test then else)} & Two branches, one form each \\
+  \texttt{when}   & \texttt{(when test body...)} & Run body if true \\
+  \texttt{unless} & \texttt{(unless test body...)} & Run body if false (guard) \\
+  \texttt{cond}   & \texttt{(cond (t1 e1) (t2 e2))} & Multi-way branch \\
+  \texttt{case}   & \texttt{(case val (k1 e1) ...)} & Match value against constants \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Predicate Functions}
+
+Common Lisp provides short predicate functions that return
+\texttt{t} or \texttt{nil}:
+
+\begin{lstlisting}
+(zerop 0)    ; => T    (is it zero?)
+(zerop 5)    ; => NIL
+(null nil)   ; => T    (is it nil/empty?)
+(null '(1))  ; => NIL
+(plusp 3)    ; => T    (positive?)
+(minusp -1)  ; => T    (negative?)
+\end{lstlisting}
+
+\texttt{zerop} is equivalent to \texttt{(= x 0)} but more readable
+in guards:
+
+\begin{lstlisting}
+;; common pattern: skip $zero register
+(unless (zerop num)
+  (setf (aref *registers* num) value))
+\end{lstlisting}
+
+\subsection{Arrays}
+
+\subsubsection{\texttt{make-array} --- Creating Arrays}
+
+\texttt{make-array} creates a fixed-size array.
+Use \texttt{:initial-element} to set a default value for all elements.
+
+\begin{lstlisting}
+(make-array 5)                        ; => #(0 0 0 0 0)
+(make-array 3 :initial-element 42)    ; => #(42 42 42)
+(make-array 32 :initial-element 0)    ; 32 registers, all zero
+\end{lstlisting}
+
+\subsubsection{\texttt{aref} --- Reading Elements}
+
+\texttt{aref} reads an element at a given index (zero-based).
+
+\begin{lstlisting}
+(defparameter *regs* (make-array 32 :initial-element 0))
+
+(aref *regs* 0)    ; => 0   (element at index 0)
+(aref *regs* 8)    ; => 0   (element at index 8)
+\end{lstlisting}
+
+\subsubsection{\texttt{setf aref} --- Writing Elements}
+
+\texttt{setf} with \texttt{aref} writes a value at a given index.
+
+\begin{lstlisting}
+(setf (aref *regs* 8) 42)   ; write 42 to index 8
+(aref *regs* 8)              ; => 42
+\end{lstlisting}
+
+\subsubsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{llp{5cm}}
+  \toprule
+  \textbf{Function} & \textbf{Example} & \textbf{Use case} \\
+  \midrule
+  \texttt{make-array}  & \texttt{(make-array 32 :initial-element 0)} & Create a fixed-size array \\
+  \texttt{aref}        & \texttt{(aref arr 8)}    & Read element at index \\
+  \texttt{setf aref}   & \texttt{(setf (aref arr 8) 42)} & Write element at index \\
+  \texttt{length}      & \texttt{(length arr)}    & Number of elements \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Arrays vs Hash Tables vs Lists}
+
+\begin{center}
+\begin{tabular}{llll}
+  \toprule
+  & \textbf{Array} & \textbf{Hash Table} & \textbf{List} \\
+  \midrule
+  Access   & O(1) by index   & O(1) by key    & O(n) \\
+  Key type & Integer (index) & Any            & Any \\
+  Size     & Fixed           & Dynamic        & Dynamic \\
+  Best for & Registers, memory & Name lookup  & Small data \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
 \subsection{Reading SBCL Error Messages}
 
 SBCL error messages follow a consistent structure.
