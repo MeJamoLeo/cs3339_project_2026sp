@@ -73,9 +73,17 @@
 ;; ------------------------------------ adder
 (assert (= (adder 0 4) 4))
 
+(format t "✅ All unit test passed!!~%")
 
 
 
+;; ------------------------------------ encode
+(assert (= (encode '("nop")) #b00000000000000000000000000000000))
+(assert (= (encode '("add" "$s0" "$t0" "$t1")) #b00000001000010011000000000100000))
+(assert (= (encode '("addi" "$t1" "$zero" "10")) #b00100000000010010000000000001010))
+(assert (= (encode '("sw" "$s0" "0" "$sp")) #b10101111101100000000000000000000))
+(assert (= (encode '("j" "32")) #b00001000000000000000000000100000))
+(assert (= (encode '("sll" "$s4" "$s0" "2")) #b00000000000100001010000010000000))
 
 
-(format t "✅ All test passed!!~%")
+(format t "✅ All Integration test passed!!~%")

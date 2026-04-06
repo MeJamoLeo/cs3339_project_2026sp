@@ -95,30 +95,30 @@
 (defun to-num (s)
   (if s (parse-integer s) 0))
 
-(defun encode (line)
-  (labels ((reg (field layout)
-			 (or (gethash (get-operand field line layout) *register-table*) 0)))
-	(let* ((instruction (gethash (car line) *instruction-table*))
-		   (inst-type  (getf instruction :type))
-		   (opcode-or-funct (getf instruction :code))
-		   (layout  (getf instruction :layout)))
+;; convert tokens to binary
+;; sample input: ("add" "$s0" "$t0" "$t1")
+;; sample output: 00000001000010011000000000100000
+(defun encode (tokens)
+  (let* ((instruction (gethash (car tokens) *instruction-table*)) ;; e.g.) "add"
+		 (inst-type  (getf instruction :type)) ;; e.g.) :r
+		 (opcode-or-funct (getf instruction :code)) ;; e.g.) #b100000 which is 32
+		 (layout  (getf instruction :layout))) ;; e.g.) (rd rs rt)
+	(labels ((reg (field)
+			   (or (gethash (get-operand field tokens layout) *register-table*) 0)))
 	  (cond ((eq :r inst-type)
-			 (encode-r (reg 'rs layout))
-			 (logior (ash 0 26)
-					 (ash (reg 'rs layout) 21)
-					 (ash (reg 'rt layout) 16)
-					 (ash (reg 'rd layout) 11)
-					 (ash (to-num (get-operand 'shamt line layout)) 6)
-					 opcode-or-funct))
+			 (encode-r (reg 'rs)
+					   (reg 'rt)
+					   (reg 'rd)
+					   (to-num (get-operand 'shamt tokens layout))
+					   opcode-or-funct))
 			((eq :i inst-type)
-			 (logior (ash opcode-or-funct 26)
-					 (ash (reg 'rs layout) 21)
-					 (ash (reg 'rt layout) 16)
-					 (logand #b1111111111111111 (to-num (get-operand 'imm line layout)))))
+			 (encode-i opcode-or-funct
+					   (reg 'rs)
+					   (reg 'rt)
+					   (to-num (get-operand 'imm tokens layout))))
 			((eq :j inst-type)
-			 (logior (ash opcode-or-funct 26)
-					 (logand #b11111111111111111111111111 (to-num (get-operand 'addr line layout)))))))))
-
+			 (encode-j opcode-or-funct
+					   (to-num (get-operand 'addr tokens layout))))))))
 
 ;; ====================================
 ;; CPU
