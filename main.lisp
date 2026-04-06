@@ -130,32 +130,11 @@
   (+ a b))
 
 (defun decode (value)
-  (let ((inst25-0 (logand #b11111111111111111111111111 value)) ;; addr
-		(inst10-6 (logand #b11111 (ash value -6))) ;; shamt
-		(inst31-26 (ash value -26)) ;; opcode to Controller
-		(inst25-21 (logand #b11111 (ash value -21))) ;; rs to Register Read1
-		(inst20-16 (logand #b11111 (ash value -16))) ;; rt to Register Read2
-		(inst15-11 (logand #b11111 (ash value -11))) ;; rd to Mux_RegDst
-		(inst15-0 (logand #b1111111111111111 value)) ;; imm to SignExtend
-		(inst5-0 (logand #b111111 value))) ;; funct to ALU Controller
-	(format t "opcode\(~A\):~C~6,'0B~%" inst31-26 #\Tab inst31-26)
-	(format t "rs\(~A\)~C~5,'0B~%" inst25-21 #\Tab inst25-21)
-	(format t "rt\(~A\)~C~5,'0B~%" inst20-16 #\Tab inst20-16)
-	(format t "rd\(~A\)~C~5,'0B~%" inst15-11 #\Tab inst15-11)
-	(format t "shamt\(~A\)~C~5,'0B~%" inst10-6 #\Tab inst10-6)
-	(format t "funct\(~A\)~C~6,'0B~%" inst5-0 #\Tab inst5-0)
-	(format t "imm\(~A\)~C~16,'0B~%"  inst15-0 #\Tab inst15-0)
-	(format t "addr\(~A\)~C~26,'0B~%"  inst25-0 #\Tab inst25-0)))
-
-
-;; ====================================
-;; Debug
-;; ====================================
-(defun debug-print ()
-(mapcar (lambda (line)
-		  (format t "~A~%" "=======================================")
-		  (format t "~A~%" line)
-		  (format t "~A~%" "---------------------------------------")
-		  (decode (encode line))
-		  (format t "~A~%~%" "======================================="))
-		(parse-assembly "./input")))
+  (list :addr (logand #b11111111111111111111111111 value) ;; inst[25-0]
+		:opcode (ash value -26) ;; inst[31-26]
+		:rs (logand #b11111 (ash value -21)) ;; inst[25-21]
+		:rt (logand #b11111 (ash value -16)) ;; inst[20-16]
+		:rd (logand #b11111 (ash value -11)) ;; inst[15-11]
+		:imm (logand #b1111111111111111 value) ;; inst[15-0]
+		:shamt (logand #b11111 (ash value -6)) ;; inst[10-6]
+		:funct (logand #b111111 value))) ;; inst[5-0]
