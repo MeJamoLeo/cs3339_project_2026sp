@@ -170,6 +170,20 @@
   (assert (= (getf ctrl :branch) 1))
   (assert (= (getf ctrl :reg-write) 0)))
 
+;; ------------------------------------ alu-control
+;; ALUOp=00 (lw/sw) → add
+(assert (= (alu-control #b00 #b000000) #b0010))
+
+;; ALUOp=01 (beq) → sub
+(assert (= (alu-control #b01 #b000000) #b0110))
+
+;; ALUOp=10 (R-type) → depends on funct
+(assert (= (alu-control #b10 #b100000) #b0010)) ;; add  (funct=32)
+(assert (= (alu-control #b10 #b100010) #b0110)) ;; sub  (funct=34)
+(assert (= (alu-control #b10 #b100100) #b0000)) ;; and  (funct=36)
+(assert (= (alu-control #b10 #b100101) #b0001)) ;; or   (funct=37)
+(assert (= (alu-control #b10 #b101010) #b0111)) ;; slt  (funct=42)
+
 (format t "~%✅ All unit test passed!!")
 
 ;; ------------------------------------ encode

@@ -193,3 +193,15 @@
 	   :mem-write	0
 	   :branch		1
 	   :alu-op		01))))
+
+;; alu-control
+(defun alu-control (alu-op funct)
+  (cond ((= alu-op #b00) #b0010) ;; lw or sw -> add
+		((logbitp 0 alu-op) #b0110) ;; ALUOp0=1 -> beq -> sub
+		((logbitp 1 alu-op) ;; ALUOp1=1 -> r-type
+		 (case (logand #b1111 funct) ;; care only funct[3-0]
+		   (#b0000 #b0010)
+		   (#b0010 #b0110)
+		   (#b0100 #b0000)
+		   (#b0101 #b0001)
+		   (#b1010 #b0111)))))
