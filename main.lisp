@@ -214,6 +214,6 @@
 				  (#b0001 (logior in1 in2))
 				  (#b0010 (+ in1 in2))
 				  (#b0110 (- in1 in2))
-				  (#b0111 (if (< in1 in1)) 1 0)
+				  (#b0111 (if (< in1 in2) 1 0))
 				  (#b1100 (lognot(logior in1 in2)))))) ;; NOR
   (list result (if (zerop result) 1 0))))
