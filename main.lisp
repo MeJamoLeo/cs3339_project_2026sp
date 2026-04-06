@@ -138,3 +138,8 @@
 		:imm (logand #b1111111111111111 value) ;; inst[15-0]
 		:shamt (logand #b11111 (ash value -6)) ;; inst[10-6]
 		:funct (logand #b111111 value))) ;; inst[5-0]
+
+(defun sign-extend (inst15-0)
+  (if (logbitp 15 inst15-0)
+	  (logior #xFFFF0000 inst15-0)
+	  inst15-0))
