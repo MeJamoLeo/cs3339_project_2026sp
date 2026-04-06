@@ -199,6 +199,13 @@
 (assert (equal (alu 0 0 #b0001) '(0 1)))
 (assert (equal (alu #b10001010 #b01111010  #b0001) '(#b11111010 0)))
 (assert (equal (alu #b10001010 #b01110101  #b0001) '(#b11111111 0)))
+;; Add ALUOp=0001
+(assert (equal (alu 1 1 #b0010) '(2 0)))
+(assert (equal (alu 1 0 #b0010) '(1 0)))
+(assert (equal (alu 0 1 #b0010) '(1 0)))
+(assert (equal (alu 0 0 #b0010) '(0 1)))
+(assert (equal (alu 32 40  #b0010) '(72 0)))
+(assert (equal (alu -32 40  #b0010) '(8 0)))
 
 (format t "~%✅ All unit test passed!!")
 
