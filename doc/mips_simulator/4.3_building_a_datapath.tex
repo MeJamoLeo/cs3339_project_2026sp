@@ -1222,3 +1222,134 @@ When using string keys, both need \texttt{equal} for comparison:
 \texttt{make-hash-table} takes \texttt{:test \#'equal}.
 The default \texttt{eql} only works for symbols and numbers.
 
+\subsection{Reading SBCL Error Messages}
+
+SBCL error messages follow a consistent structure.
+Learning to read them saves significant debugging time.
+
+\subsubsection{Anatomy of an Error}
+
+Every SBCL error has four parts:
+
+\begin{enumerate}
+  \item \textbf{Error type and message} --- what went wrong.
+  \item \textbf{Condition type} --- the Lisp condition class.
+  \item \textbf{Restarts} --- recovery options (ABORT, CONTINUE, RETRY, etc.).
+  \item \textbf{Frames (backtrace)} --- the call stack, most recent first.
+\end{enumerate}
+
+\subsubsection{Example: Wrong Number of Arguments}
+
+\begin{lstlisting}
+invalid number of arguments: 3
+   [Condition of type SB-INT:SIMPLE-PROGRAM-ERROR]
+
+Frames:
+  F 0.  (ADDER 0 0 4) [external]
+  F 1.  ("top level form") [toplevel]
+\end{lstlisting}
+
+How to read:
+\begin{itemize}
+  \item \textbf{Line 1}: ``invalid number of arguments: 3''
+        --- you passed 3 arguments.
+  \item \textbf{F 0}: \texttt{(ADDER 0 0 4)} --- shows the exact call.
+        \texttt{adder} expects 2 arguments but got 3.
+  \item \textbf{Fix}: change \texttt{(adder 0 0 4)} to \texttt{(adder 0 4)}.
+\end{itemize}
+
+\subsubsection{Example: Unmatched Parentheses}
+
+\begin{lstlisting}
+READ error during LOAD:
+  end of file on ... main.lisp
+  (in form starting at line: 22, column: 0, position: 621)
+\end{lstlisting}
+
+How to read:
+\begin{itemize}
+  \item \textbf{``end of file''}: the reader reached the end of the file
+        while still inside an expression.
+  \item \textbf{``line: 22''}: the unclosed expression starts at line 22.
+  \item \textbf{Fix}: find the opening \texttt{(} at line 22 and add
+        the missing closing \texttt{)}.
+\end{itemize}
+
+\subsubsection{Example: Assertion Failure}
+
+\begin{lstlisting}
+The assertion (= (ADDER 0 (ASH 0 2)) 4) failed with ... = 0.
+   [Condition of type SIMPLE-ERROR]
+\end{lstlisting}
+
+How to read:
+\begin{itemize}
+  \item The \texttt{assert} expression is shown in full.
+  \item ``failed with \ldots\ = 0'' means the actual result was 0,
+        but you expected 4.
+  \item This is \textbf{not a bug in the code} --- the test caught
+        a logic error.  Check your test inputs.
+\end{itemize}
+
+\subsubsection{Example: Undefined Function}
+
+\begin{lstlisting}
+The function DECODE is undefined.
+   [Condition of type UNDEFINED-FUNCTION]
+
+Frames:
+  F 0.  ("top level form") [toplevel]
+\end{lstlisting}
+
+How to read:
+\begin{itemize}
+  \item You called \texttt{decode} before it was defined.
+  \item Common causes: function is defined later in the file,
+        misspelled name, or forgot to \texttt{load} another file.
+\end{itemize}
+
+\subsubsection{Common Error Patterns}
+
+\begin{center}
+\begin{tabular}{lp{6cm}}
+  \toprule
+  \textbf{Error message} & \textbf{Likely cause} \\
+  \midrule
+  \texttt{invalid number of arguments: N}
+    & Wrong number of args in function call.
+      Check \texttt{F 0} in backtrace. \\
+  \texttt{end of file}
+    & Unmatched parenthesis.
+      Check the line number shown. \\
+  \texttt{The assertion ... failed}
+    & Test failed. Actual result differs
+      from expected. \\
+  \texttt{UNDEFINED-FUNCTION}
+    & Function not defined yet, misspelled,
+      or not loaded. \\
+  \texttt{UNBOUND-VARIABLE}
+    & Variable not defined.
+      Typo or missing \texttt{let}/\texttt{defparameter}. \\
+  \texttt{not of type NUMBER}
+    & Passed \texttt{nil} or a string where
+      a number was expected. \\
+  \texttt{not of type LIST}
+    & Called \texttt{car}/\texttt{cdr}/\texttt{mapcar}
+      on a non-list value. \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Reading the Backtrace}
+
+The backtrace (Frames) is read \textbf{top to bottom}:
+
+\begin{itemize}
+  \item \texttt{F 0} is where the error occurred (most recent call).
+  \item \texttt{F 1}, \texttt{F 2}, \ldots\ show the chain of callers.
+  \item \texttt{[toplevel]} means it was called from the top level of
+        a file being loaded.
+  \item Look for \textbf{your function names} in the frames --- skip
+        internal SBCL/SWANK frames.
+\end{itemize}
+
