@@ -168,6 +168,36 @@ A function that takes two arguments and adds them:
 (add 3 5)  ; => 8
 \end{lstlisting}
 
+\subsection{Local Variables: \texttt{let} vs \texttt{let*}}
+
+\texttt{let} binds all variables at the same time.
+\texttt{let*} binds them in order, so earlier variables can be
+used by later ones.
+
+\begin{lstlisting}
+;; let: simultaneous -- a is NOT available in b's init
+(let ((a 1)
+      (b (+ a 1)))   ; ERROR: a is undefined
+  b)
+
+;; let*: sequential -- a IS available in b's init
+(let* ((a 1)
+       (b (+ a 1)))  ; OK: a = 1
+  b)
+; => 2
+\end{lstlisting}
+
+Use \texttt{let*} when bindings depend on each other:
+
+\begin{lstlisting}
+(let* ((line  (car (parse-assembly "./input")))
+       (info  (encode-instruction (first line))))
+  (first info))
+\end{lstlisting}
+
+This is the same idea as \texttt{loop}'s \texttt{for}/\texttt{as}
+cross-referencing variables (section 2.4.3).
+
 \subsection{Binary and Hexadecimal Literals}
 
 Common Lisp supports number literals in any base:
@@ -196,6 +226,68 @@ To print a number as a zero-padded 32-bit binary string:
   \item \texttt{'0} --- pad with \texttt{0}
   \item \texttt{B} --- binary output
 \end{itemize}
+
+\subsection{Bitwise Operations}
+
+\subsubsection{\texttt{ash} --- Arithmetic Shift}
+
+Shifts a number left (positive) or right (negative) by \texttt{n} bits.
+
+\begin{lstlisting}
+(ash 1 4)     ; => 16    (shift left 4 bits: 1 -> 10000)
+(ash 16 -2)   ; => 4     (shift right 2 bits: 10000 -> 100)
+(ash 8 21)    ; => 16777216  (place register 8 at bits 25-21)
+\end{lstlisting}
+
+\subsubsection{\texttt{logior} --- Logical OR}
+
+Combines multiple values by OR-ing their bits together.
+Used to merge bit fields into a single integer.
+
+\begin{lstlisting}
+(logior #b1100 #b0011)  ; => 15 (#b1111)
+
+;; R-type: [opcode 6][rs 5][rt 5][rd 5][shamt 5][funct 6]
+(logior (ash 0 26)      ; opcode
+        (ash 8 21)      ; rs = $t0
+        (ash 9 16)      ; rt = $t1
+        (ash 16 11)     ; rd = $s0
+        (ash 0 6)       ; shamt
+        32)             ; funct = add
+; => 17064992
+(format t "~32,'0B~%" 17064992)
+; => 00000001000010011000000000100000
+\end{lstlisting}
+
+\subsubsection{\texttt{logand} --- Logical AND}
+
+Masks bits. Used to limit a value to a certain bit width.
+
+\begin{lstlisting}
+(logand #b1111 #b101010)  ; => 10 (#b1010)
+
+;; Keep only the lower 16 bits (for I-type immediate)
+(logand #xFFFF 65540)     ; => 4
+;; Keep only the lower 26 bits (for J-type address)
+(logand #x3FFFFFF 100)    ; => 100
+\end{lstlisting}
+
+\subsubsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{llp{5.5cm}}
+  \toprule
+  \textbf{Function} & \textbf{Example} & \textbf{Use case} \\
+  \midrule
+  \texttt{ash}    & \texttt{(ash 8 21)}            & Place a field at a bit position \\
+  \texttt{logior} & \texttt{(logior (ash a 26) b)}  & Combine fields into one integer \\
+  \texttt{logand} & \texttt{(logand \#xFFFF n)}     & Limit to N bits (mask) \\
+  \texttt{lognot} & \texttt{(lognot \#b1010)}       & Flip all bits \\
+  \texttt{logxor} & \texttt{(logxor \#b1100 \#b1010)} & XOR \\
+  \texttt{logbitp} & \texttt{(logbitp 15 n)} & Test if bit N is 1 (returns T/NIL) \\
+  \bottomrule
+\end{tabular}
+\end{center}
 
 \subsection{Reading Files with \texttt{with-open-file}}
 
@@ -484,6 +576,39 @@ The first argument controls where the output goes:
   (format s "hello~%"))
 \end{lstlisting}
 
+\subsubsection{How \texttt{\~{}} Directives Work}
+
+\texttt{\~{}} is the escape character in \texttt{format} strings.
+Each \texttt{\~{}X} directive consumes one argument from the argument
+list and prints it in the specified format.
+
+\begin{lstlisting}
+(format t "~A is ~A" "Lisp" "fun")
+;        ^arg1    ^arg2
+; => "Lisp is fun"
+\end{lstlisting}
+
+Some directives like \texttt{\~{}\%} (newline) do not consume arguments.
+
+\paragraph{Padding and fill character.}
+
+A number before the directive sets the minimum width.
+A fill character can be specified with \texttt{'char}.
+
+\begin{lstlisting}
+(format t "~B" 5)        ; => "101"
+(format t "~8B" 5)       ; => "     101"    (8 digits, space-padded)
+(format t "~8,'0B" 5)    ; => "00000101"    (8 digits, zero-padded)
+(format t "~32,'0B" 5)   ; => 32-bit zero-padded binary
+\end{lstlisting}
+
+The pattern \texttt{\~{}32,'0B} means:
+\begin{itemize}
+  \item \texttt{32} --- minimum 32 characters wide
+  \item \texttt{'0} --- fill empty positions with \texttt{0}
+  \item \texttt{B} --- binary output
+\end{itemize}
+
 \subsubsection{\texttt{\~{}A} vs \texttt{\~{}S}}
 
 \texttt{format} has two main directives for printing values.
@@ -523,7 +648,8 @@ with indentation:
   \texttt{\~{}S}     & \texttt{(format t "\~{}S" x)}  & Show structure (quotes, parens) \\
   \texttt{\~{}B}     & \texttt{(format t "\~{}B" 42)} & Binary output \\
   \texttt{\~{}32,'0B} & \texttt{(format t "\~{}32,'0B" 42)} & 32-bit zero-padded binary \\
-  \texttt{\~{}\%}    & \texttt{(format t "\~{}\%")}   & Newline \\
+  \texttt{\~{}C}     & \texttt{(format t "\~{}C" \#\textbackslash Tab)} & Print a character (e.g.\ tab) \\
+  \texttt{\~{}\%}    & \texttt{(format t "\~{}\%")}   & Newline (no argument consumed) \\
   \texttt{pprint}    & \texttt{(pprint x)}            & Pretty-print nested structures \\
   \bottomrule
 \end{tabular}
@@ -1044,4 +1170,354 @@ Each call adds one element to the front:
   \bottomrule
 \end{tabular}
 \end{center}
+
+\subsection{Key--Value Lookup: \texttt{assoc} vs \texttt{gethash}}
+
+Both look up a value by key, but use different data structures.
+
+\subsubsection{\texttt{assoc} --- Association List (alist)}
+
+An alist is a list of pairs. \texttt{assoc} searches linearly from the
+front.
+
+\begin{lstlisting}
+(defvar *regs* '(("$zero" 0) ("$t0" 8) ("$s0" 16)))
+
+(assoc "$t0" *regs* :test #'equal)
+; => ("$t0" 8)
+
+(cadr (assoc "$t0" *regs* :test #'equal))
+; => 8
+\end{lstlisting}
+
+\subsubsection{\texttt{gethash} --- Hash Table}
+
+A hash table provides constant-time lookup.
+Requires \texttt{make-hash-table} and \texttt{setf} to build.
+
+\begin{lstlisting}
+(defparameter *regs* (make-hash-table :test #'equal))
+(setf (gethash "$t0" *regs*) 8)
+
+(gethash "$t0" *regs*)
+; => 8
+\end{lstlisting}
+
+\subsubsection{Comparison}
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  & \textbf{\texttt{assoc} (alist)} & \textbf{\texttt{gethash} (hash table)} \\
+  \midrule
+  Data structure & List of lists & Hash table \\
+  Lookup speed   & O(n) & O(1) \\
+  Easy to create & \texttt{'((...) (...))} & \texttt{make-hash-table} + \texttt{setf} \\
+  Best for       & Small / static data & Large / frequent lookup \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+When using string keys, both need \texttt{equal} for comparison:
+\texttt{assoc} takes \texttt{:test \#'equal},
+\texttt{make-hash-table} takes \texttt{:test \#'equal}.
+The default \texttt{eql} only works for symbols and numbers.
+
+\subsection{Conditionals}
+
+\subsubsection{\texttt{if} --- Two-Way Branch}
+
+\texttt{if} evaluates a test. If true, it runs the \emph{then} form;
+otherwise it runs the \emph{else} form.
+
+\begin{lstlisting}
+(if test
+    then-form
+    else-form)
+
+(if (> x 0)
+    "positive"
+    "not positive")
+\end{lstlisting}
+
+Important: in Common Lisp, only \texttt{nil} is false.
+Everything else is true --- including \texttt{0}, \texttt{""}, and
+\texttt{()}.
+
+\begin{lstlisting}
+(if nil  "yes" "no")  ; => "no"   (nil is false)
+(if 0    "yes" "no")  ; => "yes"  (0 is NOT false)
+(if '()  "yes" "no")  ; => "no"   (() is nil)
+(if t    "yes" "no")  ; => "yes"
+\end{lstlisting}
+
+\texttt{if} only allows one form per branch. Use \texttt{progn} to
+run multiple forms:
+
+\begin{lstlisting}
+(if (zerop n)
+    (progn
+      (format t "zero!~%")
+      0)
+    (+ n 1))
+\end{lstlisting}
+
+\subsubsection{\texttt{when} and \texttt{unless} --- One-Way Branch}
+
+\texttt{when} runs its body only if the test is true.
+\texttt{unless} runs its body only if the test is false.
+Both allow multiple forms without \texttt{progn}.
+
+\begin{lstlisting}
+;; when: do something only if true
+(when (> x 0)
+  (format t "positive~%")
+  x)
+
+;; unless: do something only if false
+(unless (zerop num)
+  (setf (aref *registers* num) value))
+\end{lstlisting}
+
+\texttt{unless} is commonly used for guard clauses:
+
+\begin{lstlisting}
+;; "write to register unless it is $zero"
+(defun write-register (num value)
+  (unless (zerop num)
+    (setf (aref *registers* num) value)))
+\end{lstlisting}
+
+\subsubsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{llp{5cm}}
+  \toprule
+  \textbf{Form} & \textbf{Syntax} & \textbf{Use case} \\
+  \midrule
+  \texttt{if}     & \texttt{(if test then else)} & Two branches, one form each \\
+  \texttt{when}   & \texttt{(when test body...)} & Run body if true \\
+  \texttt{unless} & \texttt{(unless test body...)} & Run body if false (guard) \\
+  \texttt{cond}   & \texttt{(cond (t1 e1) (t2 e2))} & Multi-way branch \\
+  \texttt{case}   & \texttt{(case val (k1 e1) ...)} & Match value against constants \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Predicate Functions}
+
+Common Lisp provides short predicate functions that return
+\texttt{t} or \texttt{nil}:
+
+\begin{lstlisting}
+(zerop 0)    ; => T    (is it zero?)
+(zerop 5)    ; => NIL
+(null nil)   ; => T    (is it nil/empty?)
+(null '(1))  ; => NIL
+(plusp 3)    ; => T    (positive?)
+(minusp -1)  ; => T    (negative?)
+\end{lstlisting}
+
+\texttt{zerop} is equivalent to \texttt{(= x 0)} but more readable
+in guards:
+
+\begin{lstlisting}
+;; common pattern: skip $zero register
+(unless (zerop num)
+  (setf (aref *registers* num) value))
+\end{lstlisting}
+
+\subsection{Arrays}
+
+\subsubsection{\texttt{make-array} --- Creating Arrays}
+
+\texttt{make-array} creates a fixed-size array.
+Use \texttt{:initial-element} to set a default value for all elements.
+
+\begin{lstlisting}
+(make-array 5)                        ; => #(0 0 0 0 0)
+(make-array 3 :initial-element 42)    ; => #(42 42 42)
+(make-array 32 :initial-element 0)    ; 32 registers, all zero
+\end{lstlisting}
+
+\subsubsection{\texttt{aref} --- Reading Elements}
+
+\texttt{aref} reads an element at a given index (zero-based).
+
+\begin{lstlisting}
+(defparameter *regs* (make-array 32 :initial-element 0))
+
+(aref *regs* 0)    ; => 0   (element at index 0)
+(aref *regs* 8)    ; => 0   (element at index 8)
+\end{lstlisting}
+
+\subsubsection{\texttt{setf aref} --- Writing Elements}
+
+\texttt{setf} with \texttt{aref} writes a value at a given index.
+
+\begin{lstlisting}
+(setf (aref *regs* 8) 42)   ; write 42 to index 8
+(aref *regs* 8)              ; => 42
+\end{lstlisting}
+
+\subsubsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{llp{5cm}}
+  \toprule
+  \textbf{Function} & \textbf{Example} & \textbf{Use case} \\
+  \midrule
+  \texttt{make-array}  & \texttt{(make-array 32 :initial-element 0)} & Create a fixed-size array \\
+  \texttt{aref}        & \texttt{(aref arr 8)}    & Read element at index \\
+  \texttt{setf aref}   & \texttt{(setf (aref arr 8) 42)} & Write element at index \\
+  \texttt{length}      & \texttt{(length arr)}    & Number of elements \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Arrays vs Hash Tables vs Lists}
+
+\begin{center}
+\begin{tabular}{llll}
+  \toprule
+  & \textbf{Array} & \textbf{Hash Table} & \textbf{List} \\
+  \midrule
+  Access   & O(1) by index   & O(1) by key    & O(n) \\
+  Key type & Integer (index) & Any            & Any \\
+  Size     & Fixed           & Dynamic        & Dynamic \\
+  Best for & Registers, memory & Name lookup  & Small data \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Reading SBCL Error Messages}
+
+SBCL error messages follow a consistent structure.
+Learning to read them saves significant debugging time.
+
+\subsubsection{Anatomy of an Error}
+
+Every SBCL error has four parts:
+
+\begin{enumerate}
+  \item \textbf{Error type and message} --- what went wrong.
+  \item \textbf{Condition type} --- the Lisp condition class.
+  \item \textbf{Restarts} --- recovery options (ABORT, CONTINUE, RETRY, etc.).
+  \item \textbf{Frames (backtrace)} --- the call stack, most recent first.
+\end{enumerate}
+
+\subsubsection{Example: Wrong Number of Arguments}
+
+\begin{lstlisting}
+invalid number of arguments: 3
+   [Condition of type SB-INT:SIMPLE-PROGRAM-ERROR]
+
+Frames:
+  F 0.  (ADDER 0 0 4) [external]
+  F 1.  ("top level form") [toplevel]
+\end{lstlisting}
+
+How to read:
+\begin{itemize}
+  \item \textbf{Line 1}: ``invalid number of arguments: 3''
+        --- you passed 3 arguments.
+  \item \textbf{F 0}: \texttt{(ADDER 0 0 4)} --- shows the exact call.
+        \texttt{adder} expects 2 arguments but got 3.
+  \item \textbf{Fix}: change \texttt{(adder 0 0 4)} to \texttt{(adder 0 4)}.
+\end{itemize}
+
+\subsubsection{Example: Unmatched Parentheses}
+
+\begin{lstlisting}
+READ error during LOAD:
+  end of file on ... main.lisp
+  (in form starting at line: 22, column: 0, position: 621)
+\end{lstlisting}
+
+How to read:
+\begin{itemize}
+  \item \textbf{``end of file''}: the reader reached the end of the file
+        while still inside an expression.
+  \item \textbf{``line: 22''}: the unclosed expression starts at line 22.
+  \item \textbf{Fix}: find the opening \texttt{(} at line 22 and add
+        the missing closing \texttt{)}.
+\end{itemize}
+
+\subsubsection{Example: Assertion Failure}
+
+\begin{lstlisting}
+The assertion (= (ADDER 0 (ASH 0 2)) 4) failed with ... = 0.
+   [Condition of type SIMPLE-ERROR]
+\end{lstlisting}
+
+How to read:
+\begin{itemize}
+  \item The \texttt{assert} expression is shown in full.
+  \item ``failed with \ldots\ = 0'' means the actual result was 0,
+        but you expected 4.
+  \item This is \textbf{not a bug in the code} --- the test caught
+        a logic error.  Check your test inputs.
+\end{itemize}
+
+\subsubsection{Example: Undefined Function}
+
+\begin{lstlisting}
+The function DECODE is undefined.
+   [Condition of type UNDEFINED-FUNCTION]
+
+Frames:
+  F 0.  ("top level form") [toplevel]
+\end{lstlisting}
+
+How to read:
+\begin{itemize}
+  \item You called \texttt{decode} before it was defined.
+  \item Common causes: function is defined later in the file,
+        misspelled name, or forgot to \texttt{load} another file.
+\end{itemize}
+
+\subsubsection{Common Error Patterns}
+
+\begin{center}
+\begin{tabular}{lp{6cm}}
+  \toprule
+  \textbf{Error message} & \textbf{Likely cause} \\
+  \midrule
+  \texttt{invalid number of arguments: N}
+    & Wrong number of args in function call.
+      Check \texttt{F 0} in backtrace. \\
+  \texttt{end of file}
+    & Unmatched parenthesis.
+      Check the line number shown. \\
+  \texttt{The assertion ... failed}
+    & Test failed. Actual result differs
+      from expected. \\
+  \texttt{UNDEFINED-FUNCTION}
+    & Function not defined yet, misspelled,
+      or not loaded. \\
+  \texttt{UNBOUND-VARIABLE}
+    & Variable not defined.
+      Typo or missing \texttt{let}/\texttt{defparameter}. \\
+  \texttt{not of type NUMBER}
+    & Passed \texttt{nil} or a string where
+      a number was expected. \\
+  \texttt{not of type LIST}
+    & Called \texttt{car}/\texttt{cdr}/\texttt{mapcar}
+      on a non-list value. \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Reading the Backtrace}
+
+The backtrace (Frames) is read \textbf{top to bottom}:
+
+\begin{itemize}
+  \item \texttt{F 0} is where the error occurred (most recent call).
+  \item \texttt{F 1}, \texttt{F 2}, \ldots\ show the chain of callers.
+  \item \texttt{[toplevel]} means it was called from the top level of
+        a file being loaded.
+  \item Look for \textbf{your function names} in the frames --- skip
+        internal SBCL/SWANK frames.
+\end{itemize}
 
