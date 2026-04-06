@@ -205,3 +205,15 @@
 		   (#b0100 #b0000)
 		   (#b0101 #b0001)
 		   (#b1010 #b0111)))))
+
+;; alu
+;; TODO: carry-out, overflow but not now
+(defun alu (in1 in2 alu-op)
+  (let ((result (case alu-op
+				  (#b0000 (logand in1 in2))
+				  (#b0001 (logior in1 in2))
+				  (#b0010 (+ in1 in2))
+				  (#b0110 (- in1 in2))
+				  (#b0111 (if (< in1 in1)) 1 0)
+				  (#b1100 (lognot(logior in1 in2)))))) ;; NOR
+  (list result (if (zerop result) 1 0))))
