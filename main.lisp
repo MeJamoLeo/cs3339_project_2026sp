@@ -143,3 +143,13 @@
   (if (logbitp 15 inst15-0)
 	  (logior #xFFFF0000 inst15-0)
 	  inst15-0))
+
+;; register
+(defparameter *register* (make-array 32 :initial-element 0))
+
+(defun read-register (num)
+  (aref *register* num))
+
+(defun write-register (num value)
+  (unless (zerop num)
+	(setf (aref *register* num) value)))
