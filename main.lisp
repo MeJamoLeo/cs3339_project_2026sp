@@ -270,6 +270,8 @@
 		 (shamt (getf decoded :shamt))
 		 (funct (getf decoded :funct))
 		 (addr (getf decoded :addr))
+		 ;; control
+		 (control opcode)
 		 )
 	)
 
