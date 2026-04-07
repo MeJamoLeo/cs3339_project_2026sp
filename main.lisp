@@ -275,7 +275,7 @@
 		 (control-signals (control opcode))
 		 ;; register read
 		 (data1 (read-register rs))
-		 (data2 (read-register rt)
+		 (data2 (read-register rt))
 
 		 ;; ALU
 		 (alu-operation (alu-control (getf control-signals :alu-op) funct))
@@ -284,17 +284,23 @@
 									 (sign-extend (getf decoded :imm))
 									 data2)
 						   alu-operation))
-		 (result (car alu-output))
-		 (zero (cdar alu-output))
+		 (alu-result (car alu-output))
+		 (alu-zero (cdar alu-output))
 
 		 ;; Memory
 		 (mem-data (if (= (getf control-signals :mem-read) 1)
-					   (read-data-memory result)
-					   0)
+					   (read-data-memory alu-result)
+					   0))
 
 		 ;; Write Back
+		 (write-data (if (= (getf control-signals :mem-to-reg) 1)
+						 memdata
+						 alu-result))
+		 (write-reg (if (= (getf control-signals :reg-dst) 1)
+						rd
+						rt))
 		 )
-	)
+	))
 
 (defun main ()
   (let ((instructions (mapcar #'encode (parse-assembly "./input"))))
