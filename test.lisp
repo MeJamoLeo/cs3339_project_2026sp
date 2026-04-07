@@ -213,6 +213,10 @@
 (assert (equal (alu 0 0 #b0110) '(0 1)))
 (assert (equal (alu 32 40  #b0110) '(-8 0)))
 (assert (equal (alu -32 40  #b0110) '(-72 0)))
+;; set on less than ALUOp=0111
+(assert (equal (alu 1 1 #b0111) '(0 1)))
+(assert (equal (alu 1 0 #b0111) '(0 1)))
+(assert (equal (alu 1 99 #b0111) '(1 0)))
 
 (format t "~%✅ All unit test passed!!")
 
