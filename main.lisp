@@ -278,6 +278,15 @@
 		 (data2 (read-register rt)
 
 		 ;; ALU
+		 (alu-operation (alu-control (getf control-signals :alu-op) funct))
+		 (alu-output (alu data1
+						   (if (= (getf control-signals :alu-src) 1)
+									 (sign-extend (getf decoded :imm))
+									 data2)
+						   alu-operation))
+		 (result (car alu-output))
+		 (zero (cdar alu-output))
+
 		 ;; Memory
 		 ;; Write Back
 		 )
