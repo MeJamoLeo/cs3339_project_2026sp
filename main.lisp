@@ -269,6 +269,7 @@
 		 (rd (getf decoded :rd))
 		 (shamt (getf decoded :shamt))
 		 (funct (getf decoded :funct))
+		 (imm (getf decoded :imm))
 		 (addr (getf decoded :addr))
 		 ;; control
 		 (control opcode)
