@@ -189,7 +189,7 @@
 	   :mem-write	0
 	   :branch		1
 	   :alu-op		#b00))
-	(#b000100 ;; j
+	(#b000010 ;; j
 	 `(:reg-dst		nil
 	   :alu-src		0
 	   :mem-to-reg	nil
