@@ -245,5 +245,11 @@
 (assert (= (encode '("j" "32")) #b00001000000000000000000000100000))
 (assert (= (encode '("sll" "$s4" "$s0" "2")) #b00000000000100001010000010000000))
 
+;; ------------------------------------ encode, decode, check ctrl-signals
+(let* ((encoded (encode (split-by-spaces (normalize "addi $t0, $zero, 5"))))
+	   (decoded (decode encoded))
+	   (ctrl    (control (getf decoded :opcode))))
+  (assert (= (getf ctrl :alu-src) 1))
+  (assert (= (getf ctrl :reg-write) 1)))
 
 (format t "~%✅ All Integration test passed!!~%")
