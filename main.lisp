@@ -273,6 +273,10 @@
 		 (addr (getf decoded :addr))
 		 ;; control
 		 (control-signals (control opcode))
+		 ;; register read
+		 ;; ALU
+		 ;; Memory
+		 ;; Write Back
 		 )
 	)
 
