@@ -246,8 +246,26 @@
 ;; program counter
 (defparameter *pc* 0)
 
+
+(defun print-decoded (decoded)
+  (format t "~%===========================")
+  (format t "~%~A~6,'0B"	"opcode: " (getf decoded :opcode))
+  (format t "~%~A~5,'0B"	"rs:     " (getf decoded :rs))
+  (format t "~%~A~5,'0B"	"rt:     " (getf decoded :rt))
+  (format t "~%~A~5,'0B"	"rd:     " (getf decoded :rd))
+  (format t "~%~A~5,'0B"	"shamt:  " (getf decoded :shamt))
+  (format t "~%~A~6,'0B"	"funct:  " (getf decoded :funct))
+  (format t "~%~A~16,'0B"	"imm:    " (getf decoded :imm))
+  (format t "~%~A~26,'0B"	"addr:   " (getf decoded :addr))
+  (format t "~%==========================="))
+
 (defun main ()
   (let ((instructions (mapcar #'encode (parse-assembly "./input"))))
 	(loop while (< (/ *pc* 4) (length instructions))
-		  do (format t "~% hoge") ; TODO: Use this part for main process
-		  (setf *pc* (+ *pc* 4)))))
+		  for instruction = (nth (/ *pc* 4) instructions)
+		  for decoded = (decode instruction)
+		  do
+		  (print-decoded decoded)
+		  (setf *pc* (+ *pc* 4)) ; for ending loop
+		  )))
+(main)
