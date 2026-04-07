@@ -123,9 +123,6 @@
 ;; ====================================
 ;; CPU
 ;; ====================================
-;; program counter
-(defparameter *pc* 0)
-
 (defun adder (a b)
   (+ a b))
 
@@ -143,16 +140,6 @@
   (if (logbitp 15 inst15-0)
 	  (logior #xFFFF0000 inst15-0)
 	  inst15-0))
-
-;; register
-(defparameter *register* (make-array 32 :initial-element 0))
-
-(defun read-register (num)
-  (aref *register* num))
-
-(defun write-register (num value)
-  (unless (zerop num)
-	(setf (aref *register* num) value)))
 
 ;; controller
 (defun control (opcode)
@@ -218,6 +205,17 @@
 				  (#b1100 (logand #xFFFFFFFF (lognot (logior in1 in2))))))) ;; NOR
   (list result (if (zerop result) 1 0))))
 
+
+;; register
+(defparameter *register* (make-array 32 :initial-element 0))
+
+(defun read-register (num)
+  (aref *register* num))
+
+(defun write-register (num value)
+  (unless (zerop num)
+	(setf (aref *register* num) value)))
+
 ;; data-memory
 (defparameter *data-memory* (make-array 1024 :initial-element 0))
 
@@ -226,3 +224,7 @@
 
 (defun write-data-memory (num value)
   (setf (aref *data-memory* num) value))
+
+;; program counter
+(defparameter *pc* 0)
+
