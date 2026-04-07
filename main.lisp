@@ -153,6 +153,15 @@
 	   :mem-write	0
 	   :branch		0
 	   :alu-op		10))
+	(#b001000- ;; addi
+	 `(:reg-dst		0
+	   :alu-src		1
+	   :mem-to-reg	0
+	   :reg-write	1
+	   :mem-read	0
+	   :mem-write	0
+	   :branch		0
+	   :alu-op		00))
 	(#b100011 ;; lw
 	 `(:reg-dst		0
 	   :alu-src		1
@@ -172,6 +181,15 @@
 	   :branch		0
 	   :alu-op		00))
 	(#b000100 ;; beq
+	 `(:reg-dst		nil
+	   :alu-src		nil
+	   :mem-to-reg	nil
+	   :reg-write	0
+	   :mem-read	0
+	   :mem-write	0
+	   :branch		1
+	   :alu-op		00))
+	(#b000100 ;; j
 	 `(:reg-dst		nil
 	   :alu-src		0
 	   :mem-to-reg	nil
