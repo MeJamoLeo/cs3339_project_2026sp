@@ -288,6 +288,10 @@
 		 (zero (cdar alu-output))
 
 		 ;; Memory
+		 (mem-data (if (= (getf control-signals :mem-read) 1)
+					   (read-data-memory result)
+					   0)
+
 		 ;; Write Back
 		 )
 	)
