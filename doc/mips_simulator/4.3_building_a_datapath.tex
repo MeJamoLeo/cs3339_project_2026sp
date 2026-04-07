@@ -282,12 +282,34 @@ Masks bits. Used to limit a value to a certain bit width.
   \texttt{ash}    & \texttt{(ash 8 21)}            & Place a field at a bit position \\
   \texttt{logior} & \texttt{(logior (ash a 26) b)}  & Combine fields into one integer \\
   \texttt{logand} & \texttt{(logand \#xFFFF n)}     & Limit to N bits (mask) \\
-  \texttt{lognot} & \texttt{(lognot \#b1010)}       & Flip all bits \\
+  \texttt{lognot} & \texttt{(lognot \#b1010)}       & Flip all bits (see caveat below) \\
   \texttt{logxor} & \texttt{(logxor \#b1100 \#b1010)} & XOR \\
   \texttt{logbitp} & \texttt{(logbitp 15 n)} & Test if bit N is 1 (returns T/NIL) \\
   \bottomrule
 \end{tabular}
 \end{center}
+
+\paragraph{Caveat: \texttt{lognot} and infinite-width integers.}
+
+Common Lisp integers have no fixed bit width. \texttt{lognot} flips
+\emph{all} bits, including the infinite sign extension:
+
+\begin{lstlisting}
+(lognot 0)        ; => -1   (all bits become 1)
+(lognot #b1010)   ; => -11  (NOT the 4-bit result you might expect)
+\end{lstlisting}
+
+In hardware, NOT 0 on a 32-bit bus gives \texttt{\#xFFFFFFFF}.
+In Lisp, you must mask to 32 bits explicitly:
+
+\begin{lstlisting}
+;; simulate 32-bit NOT
+(logand #xFFFFFFFF (lognot 0))        ; => 4294967295 (#xFFFFFFFF)
+(logand #xFFFFFFFF (lognot #b1010))   ; => 4294967285 (#xFFFFFFF5)
+
+;; NOR: NOT(a OR b), masked to 32 bits
+(logand #xFFFFFFFF (lognot (logior a b)))
+\end{lstlisting}
 
 \subsection{Reading Files with \texttt{with-open-file}}
 
