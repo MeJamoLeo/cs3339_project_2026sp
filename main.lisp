@@ -127,14 +127,14 @@
   (+ a b))
 
 (defun decode (value)
-  (list :addr (logand #b11111111111111111111111111 value) ;; inst[25-0]
-		:opcode (ash value -26) ;; inst[31-26]
+  (list :opcode (ash value -26) ;; inst[31-26]
 		:rs (logand #b11111 (ash value -21)) ;; inst[25-21]
 		:rt (logand #b11111 (ash value -16)) ;; inst[20-16]
 		:rd (logand #b11111 (ash value -11)) ;; inst[15-11]
-		:imm (logand #b1111111111111111 value) ;; inst[15-0]
 		:shamt (logand #b11111 (ash value -6)) ;; inst[10-6]
-		:funct (logand #b111111 value))) ;; inst[5-0]
+		:funct (logand #b111111 value) ;; inst[5-0]
+		:imm (logand #b1111111111111111 value) ;; inst[15-0]
+		:addr (logand #b11111111111111111111111111 value))) ;; inst[25-0]
 
 (defun sign-extend (inst15-0)
   (if (logbitp 15 inst15-0)
