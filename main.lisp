@@ -274,6 +274,9 @@
 		 ;; control
 		 (control-signals (control opcode))
 		 ;; register read
+		 (data1 (read-register rs))
+		 (data2 (read-register rt)
+
 		 ;; ALU
 		 ;; Memory
 		 ;; Write Back
