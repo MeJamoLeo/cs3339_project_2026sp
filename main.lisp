@@ -272,7 +272,7 @@
 		 (imm (getf decoded :imm))
 		 (addr (getf decoded :addr))
 		 ;; control
-		 (control opcode)
+		 (control-signals (control opcode))
 		 )
 	)
 
