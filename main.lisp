@@ -152,8 +152,8 @@
 	   :mem-read	0
 	   :mem-write	0
 	   :branch		0
-	   :alu-op		10))
-	(#b001000- ;; addi
+	   :alu-op		#b10))
+	(#b001000 ;; addi
 	 `(:reg-dst		0
 	   :alu-src		1
 	   :mem-to-reg	0
@@ -161,7 +161,7 @@
 	   :mem-read	0
 	   :mem-write	0
 	   :branch		0
-	   :alu-op		00))
+	   :alu-op		#b00))
 	(#b100011 ;; lw
 	 `(:reg-dst		0
 	   :alu-src		1
@@ -170,7 +170,7 @@
 	   :mem-read	1
 	   :mem-write	0
 	   :branch		0
-	   :alu-op		00))
+	   :alu-op		#b00))
 	(#b101011 ;; sw
 	 `(:reg-dst		nil
 	   :alu-src		1
@@ -179,7 +179,7 @@
 	   :mem-read	0
 	   :mem-write	1
 	   :branch		0
-	   :alu-op		00))
+	   :alu-op		#b00))
 	(#b000100 ;; beq
 	 `(:reg-dst		nil
 	   :alu-src		nil
@@ -188,7 +188,7 @@
 	   :mem-read	0
 	   :mem-write	0
 	   :branch		1
-	   :alu-op		00))
+	   :alu-op		#b00))
 	(#b000100 ;; j
 	 `(:reg-dst		nil
 	   :alu-src		0
@@ -197,7 +197,7 @@
 	   :mem-read	0
 	   :mem-write	0
 	   :branch		1
-	   :alu-op		01))))
+	   :alu-op		#b01))))
 
 ;; alu-control
 (defun alu-control (alu-op funct)

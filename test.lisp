@@ -152,13 +152,15 @@
   (assert (= (getf ctrl :reg-write) 1))
   (assert (= (getf ctrl :mem-read) 0))
   (assert (= (getf ctrl :mem-write) 0))
-  (assert (= (getf ctrl :branch) 0)))
+  (assert (= (getf ctrl :branch) 0))
+  (assert (= (getf ctrl :alu-op) #b10)))
 
 ;; lw (opcode=35)
 (let ((ctrl (control #b100011)))
   (assert (= (getf ctrl :mem-read) 1))
   (assert (= (getf ctrl :reg-write) 1))
-  (assert (= (getf ctrl :alu-src) 1)))
+  (assert (= (getf ctrl :alu-src) 1))
+  (assert (= (getf ctrl :alu-op) #b00)))
 
 ;; sw (opcode=43)
 (let ((ctrl (control #b101011)))
