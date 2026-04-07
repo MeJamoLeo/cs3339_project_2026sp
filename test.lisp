@@ -217,6 +217,13 @@
 (assert (equal (alu 1 1 #b0111) '(0 1)))
 (assert (equal (alu 1 0 #b0111) '(0 1)))
 (assert (equal (alu 1 99 #b0111) '(1 0)))
+;; NOR ALUOp=1100
+(assert (equal (alu 0 0 #b1100) '(#xFFFFFFFF 0))) ;; 0=#x00000000
+(assert (equal (alu #x00000000 #x00000000 #b1100) '(#xFFFFFFFF 0)))
+(assert (equal (alu 1 0 #b1100) '(#xFFFFFFFE 0))) ;; 1=#x00000001
+(assert (equal (alu 1 1 #b1100) '(#xFFFFFFFE 0)))
+(assert (equal (alu #xFFFFFFFF #xFFFFFFFF #b1100) '(#x00000000 1)))
+(assert (equal (alu #xFFFFFFFF #x00000000 #b1100) '(#x00000000 1)))
 
 (format t "~%✅ All unit test passed!!")
 
