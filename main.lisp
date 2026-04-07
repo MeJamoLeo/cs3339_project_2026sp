@@ -259,6 +259,20 @@
   (format t "~%~A~26,'0B"	"addr:   " (getf decoded :addr))
   (format t "~%==========================="))
 
+(defun execute-one-cycle (line)
+  (let* ((encoded (encode (split-by-spaces (normalize "addi $t0, $zero, 5"))))
+		 (decoded (decode encoded))
+		 ;; decode
+		 (opcode (getf decoded :opcode))
+		 (rs (getf decoded :rs))
+		 (rt (getf decoded :rt))
+		 (rd (getf decoded :rd))
+		 (shamt (getf decoded :shamt))
+		 (funct (getf decoded :funct))
+		 (addr (getf decoded :addr))
+		 )
+	)
+
 (defun main ()
   (let ((instructions (mapcar #'encode (parse-assembly "./input"))))
 	(loop while (< (/ *pc* 4) (length instructions))
