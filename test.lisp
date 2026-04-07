@@ -225,6 +225,14 @@
 (assert (equal (alu #xFFFFFFFF #xFFFFFFFF #b1100) '(#x00000000 1)))
 (assert (equal (alu #xFFFFFFFF #x00000000 #b1100) '(#x00000000 1)))
 
+;; ------------------------------------ register
+(assert (= (read-data-memory 0) 0))
+(assert (= (read-data-memory 31) 0))
+(write-data-memory 0 31)
+(assert (= (read-data-memory 0) 31))
+(write-data-memory 31 9999)
+(assert (= (read-data-memory 31) 9999))
+
 (format t "~%✅ All unit test passed!!")
 
 ;; ------------------------------------ encode

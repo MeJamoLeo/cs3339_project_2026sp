@@ -217,3 +217,12 @@
 				  (#b0111 (if (< in1 in2) 1 0))
 				  (#b1100 (logand #xFFFFFFFF (lognot (logior in1 in2))))))) ;; NOR
   (list result (if (zerop result) 1 0))))
+
+;; data-memory
+(defparameter *data-memory* (make-array 1024 :initial-element 0))
+
+(defun read-data-memory (num)
+  (aref *data-memory* num))
+
+(defun write-data-memory (num value)
+  (setf (aref *data-memory* num) value))
