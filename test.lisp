@@ -252,4 +252,6 @@
   (assert (= (getf ctrl :alu-src) 1))
   (assert (= (getf ctrl :reg-write) 1)))
 
+;; ------------------------------------ execute one cycle
+
 (format t "~%✅ All Integration test passed!!~%")

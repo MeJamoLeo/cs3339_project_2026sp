@@ -260,7 +260,7 @@
   (format t "~%==========================="))
 
 (defun execute-one-cycle (line)
-  (let* ((encoded (encode (split-by-spaces (normalize "addi $t0, $zero, 5"))))
+  (let* ((encoded (encode (split-by-spaces (normalize line))))
 		 (decoded (decode encoded))
 		 ;; decode
 		 (opcode (getf decoded :opcode))
@@ -284,8 +284,8 @@
 									 (sign-extend (getf decoded :imm))
 									 data2)
 						   alu-operation))
-		 (alu-result (car alu-output))
-		 (alu-zero (cdar alu-output))
+		 (alu-result (first alu-output))
+		 (alu-zero (second alu-output))
 
 		 ;; Memory
 		 (mem-data (if (= (getf control-signals :mem-read) 1)
@@ -301,6 +301,8 @@
 						rt))
 		 )
 	))
+
+(execute-one-cycle "addi $t0, $zero, 5")
 
 (defun main ()
   (let ((instructions (mapcar #'encode (parse-assembly "./input"))))
