@@ -228,3 +228,8 @@
 ;; program counter
 (defparameter *pc* 0)
 
+(defun main ()
+  (let ((instructions (mapcar #'encode (parse-assembly "./input"))))
+	(loop while (< (/ *pc* 4) (length instructions))
+		  do (format t "~% hoge") ; TODO: Use this part for main process
+		  (setf *pc* (+ *pc* 4)))))
