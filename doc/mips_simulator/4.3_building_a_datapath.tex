@@ -1412,6 +1412,151 @@ Use \texttt{:initial-element} to set a default value for all elements.
 \end{tabular}
 \end{center}
 
+\subsection{Macros}
+
+Macros transform code at compile time. A function computes a value;
+a macro generates code that is then compiled and executed.
+
+\subsubsection{Basic Syntax}
+
+\begin{lstlisting}
+(defmacro name (params)
+  `(template with ,param holes))
+\end{lstlisting}
+
+Three special characters inside a backquoted template:
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+  \toprule
+  \textbf{Syntax} & \textbf{Meaning} \\
+  \midrule
+  \texttt{`(...)}   & Backquote: creates a template \\
+  \texttt{,x}       & Comma: insert the value of \texttt{x} \\
+  \texttt{,@xs}     & Comma-at: splice a list \texttt{xs} into the template \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{A First Macro}
+
+\begin{lstlisting}
+(defmacro say-hello (name)
+  `(format t "Hello, ~A!~%" ,name))
+
+(say-hello "Alice")
+;; expands to:
+;; (format t "Hello, ~A!~%" "Alice")
+;; prints: Hello, Alice!
+\end{lstlisting}
+
+Without the comma, \texttt{name} would be the symbol \texttt{NAME},
+not the string \texttt{"Alice"}.
+
+\subsubsection{Comma-at: Splicing Lists}
+
+\texttt{,@} expands a list inline instead of nesting it:
+
+\begin{lstlisting}
+(defmacro do-all (&body body)
+  `(progn ,@body))
+
+(do-all
+  (print 1)
+  (print 2)
+  (print 3))
+;; expands to:
+;; (progn (print 1) (print 2) (print 3))
+\end{lstlisting}
+
+Compare \texttt{,} vs \texttt{,@}:
+
+\begin{lstlisting}
+;; With ,body (comma):
+`(progn ,body)    ; => (progn ((print 1) (print 2)))
+                  ;    body is inserted as one element
+
+;; With ,@body (comma-at):
+`(progn ,@body)   ; => (progn (print 1) (print 2))
+                  ;    body is spliced: elements spread out
+\end{lstlisting}
+
+\subsubsection{Macro vs Function}
+
+\begin{lstlisting}
+;; Function: evaluates argument first, then calls
+(defun double-fn (x) (+ x x))
+(double-fn (* 2 3))
+;; 1. (* 2 3) => 6
+;; 2. (double-fn 6) => 12
+
+;; Macro: inserts code first, then evaluates
+(defmacro double-mac (x) `(+ ,x ,x))
+(double-mac (* 2 3))
+;; 1. expand => (+ (* 2 3) (* 2 3))
+;; 2. evaluate => (+ 6 6) => 12
+\end{lstlisting}
+
+Both return 12, but the macro evaluates \texttt{(* 2 3)} twice.
+This is the classic macro pitfall --- use \texttt{let} to avoid
+double evaluation when it matters:
+
+\begin{lstlisting}
+(defmacro double-safe (x)
+  (let ((val (gensym)))    ; generate a unique variable name
+    `(let ((,val ,x))      ; evaluate x only once
+       (+ ,val ,val))))
+\end{lstlisting}
+
+\subsubsection{Generating Definitions}
+
+Functions cannot create new definitions. Macros can:
+
+\begin{lstlisting}
+(defmacro def-greeter (language greeting)
+  `(defun ,(intern (format nil "SAY-~A" language)) ()
+     (format t "~A~%" ,greeting)))
+
+(def-greeter english "Hello!")
+(def-greeter japanese "Konnichiwa!")
+
+;; expands to:
+;; (defun say-english () (format t "~A~%" "Hello!"))
+;; (defun say-japanese () (format t "~A~%" "Konnichiwa!"))
+
+(say-english)   ; prints: Hello!
+(say-japanese)  ; prints: Konnichiwa!
+\end{lstlisting}
+
+\subsubsection{Quick Reference}
+
+\begin{center}
+\begin{tabular}{lp{6cm}}
+  \toprule
+  \textbf{Concept} & \textbf{Description} \\
+  \midrule
+  \texttt{defmacro}  & Define a macro \\
+  \texttt{`(...)}     & Backquote template \\
+  \texttt{,x}         & Insert value of \texttt{x} \\
+  \texttt{,@xs}       & Splice list \texttt{xs} \\
+  \texttt{gensym}     & Generate unique symbol (avoid variable capture) \\
+  \texttt{macroexpand-1} & Show one level of macro expansion (for debugging) \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Debugging macros.}
+
+Use \texttt{macroexpand-1} to see what a macro generates:
+
+\begin{lstlisting}
+(macroexpand-1 '(double-mac (* 2 3)))
+;; => (+ (* 2 3) (* 2 3))
+
+(macroexpand-1 '(say-hello "Alice"))
+;; => (FORMAT T "Hello, ~A!~%" "Alice")
+\end{lstlisting}
+
 \subsection{Reading SBCL Error Messages}
 
 SBCL error messages follow a consistent structure.
