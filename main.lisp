@@ -297,9 +297,12 @@
 						 alu-result))
 		 (write-reg (if (= (getf control-signals :reg-dst) 1)
 						rd
-						rt))
-		 )
-	))
+						rt)))
+	;; State change (in other words, side effect)
+	(when (= (getf control-signals :reg-write) 1)
+	  (write-register write-reg write-data))
+	(when (= (getf control-signals :mem-write) 1)
+	  (write-data-memory alu-result data2))))
 
 (execute-one-cycle "addi $t0, $zero, 5")
 
