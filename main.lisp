@@ -294,7 +294,7 @@
 
 		 ;; Write Back
 		 (write-data (if (= (getf control-signals :mem-to-reg) 1)
-						 memdata
+						 mem-data
 						 alu-result))
 		 (write-reg (if (= (getf control-signals :reg-dst) 1)
 						rd
