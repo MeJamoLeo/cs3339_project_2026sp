@@ -304,7 +304,7 @@
 	(when (= (getf control-signals :mem-write) 1)
 	  (write-data-memory alu-result data2))))
 
-(execute-one-cycle "addi $t0, $zero, 5")
+;(execute-one-cycle "addi $t0, $zero, 5")
 
 (defun main ()
   (let ((instructions (mapcar #'encode (parse-assembly "./input"))))
@@ -315,4 +315,4 @@
 		  (print-decoded decoded)
 		  (setf *pc* (+ *pc* 4)) ; for ending loop
 		  )))
-(main)
+;(main)
