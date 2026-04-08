@@ -280,7 +280,7 @@
 		 ;; ALU
 		 (alu-operation (alu-control (getf control-signals :alu-op) funct))
 		 (alu-output (alu data1 (if (= (getf control-signals :alu-src) 1)
-									(sign-extend (getf decoded :imm))
+									(sign-extend imm)
 									data2)
 						  alu-operation))
 		 (alu-result (first alu-output))
