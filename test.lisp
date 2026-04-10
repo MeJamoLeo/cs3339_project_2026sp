@@ -262,4 +262,8 @@
 (assert (= (read-register 8) 5)) ;; $t0 = reg[8]
 (assert (= *pc* 4))
 
+(execute-one-cycle "addi $t1, $zero, 10") ;; $t0 supposed to be 5
+(assert (= (read-register 9) 10)) ;; $t1 = reg[9]
+(assert (= *pc* 8))
+
 (format t "~%✅ All Integration test passed!!~%")
