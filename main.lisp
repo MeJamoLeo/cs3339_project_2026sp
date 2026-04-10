@@ -186,14 +186,14 @@
 	   :alu-op		#b00))
 	(#b000100 ;; beq
 	 `(:reg-dst		nil
-	   :alu-src		nil
+	   :alu-src		0
 	   :mem-to-reg	nil
 	   :reg-write	0
 	   :mem-read	0
 	   :mem-write	0
 	   :branch		1
 	   :jump		0
-	   :alu-op		#b00))
+	   :alu-op		#b01))
 	(#b000010 ;; j
 	 `(:reg-dst		nil
 	   :alu-src		0
