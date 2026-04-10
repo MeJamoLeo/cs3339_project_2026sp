@@ -303,12 +303,26 @@
 						 alu-result))
 		 (write-reg (if (= (getf control-signals :reg-dst) 1)
 						rd
-						rt)))
+						rt))
+		 ;; Program Coutner
+		 (pc+4 (+ *pc* 4))
+		 (branch-target (+ pc+4 (ash (sign-extend imm) 2)))
+		 (branch-result (if (and (= (getf control-signals :branch) 1) 
+								 (= alu-zero 1))
+							branch-target
+							pc+4))
+		 (jump-target (logior (ash addr 2)
+							  (logand pc+4 #xF0000000)))
+		 (next-pc (if (= (getf control-signals :jump) 1)
+					  jump-target
+					  branch-result)))
 	;; State change (in other words, side effect)
 	(when (= (getf control-signals :reg-write) 1)
 	  (write-register write-reg write-data))
 	(when (= (getf control-signals :mem-write) 1)
-	  (write-data-memory alu-result data2))))
+	  (write-data-memory alu-result data2))
+	(setf *pc* next-pc)
+	))
 
 ;(execute-one-cycle "addi $t0, $zero, 5")
 
