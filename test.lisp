@@ -274,5 +274,12 @@
 (assert (= (read-register 17) (read-register 9))) ;; $s1 = reg[17]
 (assert (= *pc* 16))
 
+(execute-one-cycle "and $s1, $s0, $t0")
+(assert (= (read-register 17) #b0101)) ;; $s1 = reg[17]
+(assert (= *pc* 20))
+
+(execute-one-cycle "or $s1, $s0, $t0")
+(assert (= (read-register 17) #b1111)) ;; $s1 = reg[17]
+(assert (= *pc* 24))
 
 (format t "~%✅ All Integration test passed!!~%")
