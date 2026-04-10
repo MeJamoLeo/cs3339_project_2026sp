@@ -313,4 +313,7 @@
 (execute-one-cycle "beq $t0, $t0, 100")
 (assert (= *pc* 448))
 
+(execute-one-cycle "j 0")
+(assert (= *pc* 0))
+
 (format t "~%✅ All Integration test passed!!~%")
