@@ -269,4 +269,10 @@
 (execute-one-cycle "add $s0, $t0, $t1")
 (assert (= (read-register 16) 15)) ;; $s0 = reg[16]
 (assert (= *pc* 12))
+
+(execute-one-cycle "sub $s1, $s0, $t0")
+(assert (= (read-register 17) (read-register 9))) ;; $s1 = reg[17]
+(assert (= *pc* 16))
+
+
 (format t "~%✅ All Integration test passed!!~%")
