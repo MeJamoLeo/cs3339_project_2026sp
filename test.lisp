@@ -174,17 +174,25 @@
 
 ;; ------------------------------------ alu-control
 ;; ALUOp=00 (lw/sw) → add
-(assert (= (alu-control #b00 #b000000) #b0010))
+(assert (= (getf (alu-control #b00 #b000000) :alu-operation) #b0010))
+(assert (= (getf (alu-control #b00 #b000000) :alu-in1-src) 0))
 
 ;; ALUOp=01 (beq) → sub
-(assert (= (alu-control #b01 #b000000) #b0110))
+(assert (= (getf (alu-control #b01 #b000000) :alu-operation) #b0110))
+(assert (= (getf (alu-control #b01 #b000000) :alu-in1-src) 0))
 
 ;; ALUOp=10 (R-type) → depends on funct
-(assert (= (alu-control #b10 #b100000) #b0010)) ;; add  (funct=32)
-(assert (= (alu-control #b10 #b100010) #b0110)) ;; sub  (funct=34)
-(assert (= (alu-control #b10 #b100100) #b0000)) ;; and  (funct=36)
-(assert (= (alu-control #b10 #b100101) #b0001)) ;; or   (funct=37)
-(assert (= (alu-control #b10 #b101010) #b0111)) ;; slt  (funct=42)
+(assert (= (getf (alu-control #b10 #b100000) :alu-operation) #b0010)) ;; add  (funct=32)
+(assert (= (getf (alu-control #b10 #b100010) :alu-operation) #b0110)) ;; sub  (funct=34)
+(assert (= (getf (alu-control #b10 #b100100) :alu-operation) #b0000)) ;; and  (funct=36)
+(assert (= (getf (alu-control #b10 #b100101) :alu-operation) #b0001)) ;; or   (funct=37)
+(assert (= (getf (alu-control #b10 #b101010) :alu-operation) #b0111)) ;; slt  (funct=42)
+
+;; sll/srl → alu-in1-src=1 (use data2 instead of data1)
+(assert (= (getf (alu-control #b10 #b000000) :alu-operation) #b1110)) ;; sll  (funct=0)
+(assert (= (getf (alu-control #b10 #b000000) :alu-in1-src) 1))
+(assert (= (getf (alu-control #b10 #b000010) :alu-operation) #b1111)) ;; srl  (funct=2)
+(assert (= (getf (alu-control #b10 #b000010) :alu-in1-src) 1))
 
 ;; ------------------------------------ alu
 ;; AND ALUOp=0000
@@ -281,5 +289,13 @@
 (execute-one-cycle "or $s1, $s0, $t0")
 (assert (= (read-register 17) #b1111)) ;; $s1 = reg[17]
 (assert (= *pc* 24))
+
+(execute-one-cycle "sll $s4, $s0, 2")
+(assert (= (read-register 20) #b111100)) ;; $s4 = reg[20]
+(assert (= *pc* 28))
+
+(execute-one-cycle "srl $s4, $s0, 2")
+(assert (= (read-register 20) #b11)) ;; $s4 = reg[20]
+(assert (= *pc* 32))
 
 (format t "~%✅ All Integration test passed!!~%")

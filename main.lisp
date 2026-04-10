@@ -207,15 +207,18 @@
 
 ;; alu-control
 (defun alu-control (alu-op funct)
-  (cond ((= alu-op #b00) #b0010) ;; lw or sw -> add
-		((logbitp 0 alu-op) #b0110) ;; ALUOp0=1 -> beq -> sub
+  (cond ((= alu-op #b00) '(:alu-operation #b0010 :alu-in1-src 0)) ;; lw or sw -> add
+		((logbitp 0 alu-op) '(:alu-operation #b0110 :alu-in1-src 0)) ;; ALUOp0=1 -> beq -> sub
 		((logbitp 1 alu-op) ;; ALUOp1=1 -> r-type
-		 (case (logand #b1111 funct) ;; care only funct[3-0]
-		   (#b0000 #b0010)
-		   (#b0010 #b0110)
-		   (#b0100 #b0000)
-		   (#b0101 #b0001)
-		   (#b1010 #b0111)))))
+		 (case funct
+		   (#b100000 '(:alu-operation #b0010 :alu-in1-src 0)) ;; add
+		   (#b100010 '(:alu-operation #b0110 :alu-in1-src 0)) ;; sub
+		   (#b100100 '(:alu-operation #b0000 :alu-in1-src 0)) ;; and
+		   (#b100101 '(:alu-operation #b0001 :alu-in1-src 0)) ;; or
+		   (#b101010 '(:alu-operation #b0111 :alu-in1-src 0)) ;; set on less than
+		   (#b000000 '(:alu-operation #b1110 :alu-in1-src 1)) ;; sll, shift left logical
+		   (#b000010 '(:alu-operation #b1111 :alu-in1-src 1)) ;; srl, shift right logical
+		   ))))
 
 ;; alu
 ;; TODO: carry-out, overflow but not now
@@ -226,7 +229,10 @@
 				  (#b0010 (+ in1 in2))
 				  (#b0110 (- in1 in2))
 				  (#b0111 (if (< in1 in2) 1 0))
-				  (#b1100 (logand #xFFFFFFFF (lognot (logior in1 in2))))))) ;; NOR
+				  (#b1100 (logand #xFFFFFFFF (lognot (logior in1 in2)))) ;; NOR
+				  (#b1110 (ash in2 in1)) ;; sll, shift left logical
+				  (#b1111 (ash in2 (- in1))) ;; srl, shift right logical
+				  )))
   (list result (if (zerop result) 1 0))))
 
 
@@ -284,11 +290,14 @@
 		 (data2 (read-register rt))
 
 		 ;; ALU
-		 (alu-operation (alu-control (getf control-signals :alu-op) funct))
-		 (alu-output (alu data1 (if (= (getf control-signals :alu-src) 1)
-									(sign-extend imm)
-									data2)
-						  alu-operation))
+		 (alu-ctrl-signals (alu-control (getf control-signals :alu-op) funct))
+		 (alu-output (alu (if (= (getf alu-ctrl-signals :alu-in1-src) 1)
+							  shamt
+							  data1)
+						  (if (= (getf control-signals :alu-src) 1)
+							  (sign-extend imm)
+							  data2)
+						  (getf alu-ctrl-signals :alu-operation)))
 		 (alu-result (first alu-output))
 		 (alu-zero (second alu-output))
 
