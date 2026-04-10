@@ -1,5 +1,3 @@
-(load "main.lisp")
-
 (defun snapshot ()
   (list :pc *pc*
 		:registers (copy-seq *register*)

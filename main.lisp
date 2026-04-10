@@ -1,4 +1,4 @@
-(load "./debug.lisp")
+;(load "./debug.lisp")
 
 ;; ====================================
 ;; Assemblar
@@ -330,7 +330,7 @@
 		  for instruction = (nth (/ *pc* 4) instructions)
 		  for decoded = (decode instruction)
 		  do
-		  (print-decoded decoded) ; for debug
+		  ;(print-decoded decoded) ; for debug
 		  (setf *pc* (+ *pc* 4)) ; for ending loop
 		  )))
 (main)
