@@ -152,6 +152,7 @@
 	   :mem-read	0
 	   :mem-write	0
 	   :branch		0
+	   :jump		0
 	   :alu-op		#b10))
 	(#b001000 ;; addi
 	 `(:reg-dst		0
@@ -161,6 +162,7 @@
 	   :mem-read	0
 	   :mem-write	0
 	   :branch		0
+	   :jump		0
 	   :alu-op		#b00))
 	(#b100011 ;; lw
 	 `(:reg-dst		0
@@ -170,6 +172,7 @@
 	   :mem-read	1
 	   :mem-write	0
 	   :branch		0
+	   :jump		0
 	   :alu-op		#b00))
 	(#b101011 ;; sw
 	 `(:reg-dst		nil
@@ -179,6 +182,7 @@
 	   :mem-read	0
 	   :mem-write	1
 	   :branch		0
+	   :jump		0
 	   :alu-op		#b00))
 	(#b000100 ;; beq
 	 `(:reg-dst		nil
@@ -188,6 +192,7 @@
 	   :mem-read	0
 	   :mem-write	0
 	   :branch		1
+	   :jump		0
 	   :alu-op		#b00))
 	(#b000010 ;; j
 	 `(:reg-dst		nil
@@ -197,6 +202,7 @@
 	   :mem-read	0
 	   :mem-write	0
 	   :branch		1
+	   :jump		1
 	   :alu-op		#b01))))
 
 ;; alu-control
