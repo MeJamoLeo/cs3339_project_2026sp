@@ -316,4 +316,25 @@
 (execute-one-cycle "j 0")
 (assert (= *pc* 0))
 
+;; ------------------------------------ pipeline
+;; reset register and program counter
+(setf *pc* 0)
+(fill *register* 0)
+(setf *instruction-memory*
+	  (vector (encode (split-by-spaces (normalize "addi $t0, $zero, 5")))
+			  (encode (split-by-spaces (normalize "addi $t1, $zero, 10")))
+			  (encode (split-by-spaces (normalize "add $s0, $t0, $t1")))))
+
+;; "addi $t0, $zero, 5"
+(assert (equal (stage-if *pc*)
+			   (list :instruction #b00100000000010000000000000000101
+					 :pc+4 4)))
+
+(setf *pc* (+ *pc* 4))
+
+ ;; "addi $t0, $zero, 5"
+(assert (equal (stage-if *pc*)
+			   (list :instruction #b00100000000010010000000000001010
+					 :pc+4 8)))
+
 (format t "~%✅ All Integration test passed!!~%")

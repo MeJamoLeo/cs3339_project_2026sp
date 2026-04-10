@@ -324,6 +324,13 @@
 
 ;(execute-one-cycle "addi $t0, $zero, 5")
 
+(defun stage-if (pc)
+  (let* ((instruction (aref *instruction-memory*  (/ pc 4)))
+		  (pc+4 (+ pc 4)))
+	(list :instruction instruction :pc+4 pc+4)))
+
+(defparameter *instruction-memory* #())
+
 (defun main ()
   (let ((instructions (mapcar #'encode (parse-assembly "./input"))))
 	(loop while (< (/ *pc* 4) (length instructions))
