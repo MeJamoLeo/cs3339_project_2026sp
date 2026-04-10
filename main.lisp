@@ -307,10 +307,10 @@
 					   0))
 
 		 ;; Write Back
-		 (write-data (if (= (getf control-signals :mem-to-reg) 1)
+		 (write-data (if (eql (getf control-signals :mem-to-reg) 1)
 						 mem-data
 						 alu-result))
-		 (write-reg (if (= (getf control-signals :reg-dst) 1)
+		 (write-reg (if (eql (getf control-signals :reg-dst) 1)
 						rd
 						rt))
 		 ;; Program Coutner
