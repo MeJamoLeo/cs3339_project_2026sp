@@ -307,4 +307,10 @@
 (assert (= (read-register 18) 15)) ;; $s2 = reg[18]
 (assert (= *pc* 40))
 
+(execute-one-cycle "beq $t0, $t1, 100")
+(assert (= *pc* 44))
+
+(execute-one-cycle "beq $t0, $t0, 100")
+(assert (= *pc* 448))
+
 (format t "~%✅ All Integration test passed!!~%")
