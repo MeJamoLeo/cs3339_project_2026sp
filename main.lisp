@@ -207,17 +207,17 @@
 
 ;; alu-control
 (defun alu-control (alu-op funct)
-  (cond ((= alu-op #b00) #b0010) ;; lw or sw -> add
-		((logbitp 0 alu-op) #b0110) ;; ALUOp0=1 -> beq -> sub
+  (cond ((= alu-op #b00) '(:alu-operation #b0010 :alu-in1-src 0)) ;; lw or sw -> add
+		((logbitp 0 alu-op) '(:alu-operation #b0110 :alu-in1-src 0)) ;; ALUOp0=1 -> beq -> sub
 		((logbitp 1 alu-op) ;; ALUOp1=1 -> r-type
 		 (case funct
-		   (#b100000 #b0010) ;; add
-		   (#b100010 #b0110) ;; sub
-		   (#b100100 #b0000) ;; and
-		   (#b100101 #b0001) ;; or
-		   (#b101010 #b0111) ;; set on less than
-		   (#b000000 #b1110) ;; sll, shift left logical
-		   (#b000010 #b1111) ;; srl, shift right logical
+		   (#b100000 '(:alu-operation #b0010 :alu-in1-src 0)) ;; add
+		   (#b100010 '(:alu-operation #b0110 :alu-in1-src 0)) ;; sub
+		   (#b100100 '(:alu-operation #b0000 :alu-in1-src 0)) ;; and
+		   (#b100101 '(:alu-operation #b0001 :alu-in1-src 0)) ;; or
+		   (#b101010 '(:alu-operation #b0111 :alu-in1-src 0)) ;; set on less than
+		   (#b000000 '(:alu-operation #b1110 :alu-in1-src 1)) ;; sll, shift left logical
+		   (#b000010 '(:alu-operation #b1111 :alu-in1-src 1)) ;; srl, shift right logical
 		   ))))
 
 ;; alu
@@ -290,11 +290,14 @@
 		 (data2 (read-register rt))
 
 		 ;; ALU
-		 (alu-operation (alu-control (getf control-signals :alu-op) funct))
-		 (alu-output (alu data1 (if (= (getf control-signals :alu-src) 1)
-									(sign-extend imm)
-									data2)
-						  alu-operation))
+		 (alu-ctrl-signals (alu-control (getf control-signals :alu-op) funct))
+		 (alu-output (alu (if (= (getf alu-ctrl-signals :alu-in1-src) 1)
+							  shamt
+							  data1)
+						  (if (= (getf control-signals :alu-src) 1)
+							  (sign-extend imm)
+							  data2)
+						  (getf alu-ctrl-signals :alu-operation)))
 		 (alu-result (first alu-output))
 		 (alu-zero (second alu-output))
 
