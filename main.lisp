@@ -210,12 +210,15 @@
   (cond ((= alu-op #b00) #b0010) ;; lw or sw -> add
 		((logbitp 0 alu-op) #b0110) ;; ALUOp0=1 -> beq -> sub
 		((logbitp 1 alu-op) ;; ALUOp1=1 -> r-type
-		 (case (logand #b1111 funct) ;; care only funct[3-0]
-		   (#b0000 #b0010)
-		   (#b0010 #b0110)
-		   (#b0100 #b0000)
-		   (#b0101 #b0001)
-		   (#b1010 #b0111)))))
+		 (case funct
+		   (#b100000 #b0010) ;; add
+		   (#b100010 #b0110) ;; sub
+		   (#b100100 #b0000) ;; and
+		   (#b100101 #b0001) ;; or
+		   (#b101010 #b0111) ;; set on less than
+		   (#b000000 #b1110) ;; sll, shift left logical
+		   (#b000010 #b1111) ;; srl, shift right logical
+		   ))))
 
 ;; alu
 ;; TODO: carry-out, overflow but not now
