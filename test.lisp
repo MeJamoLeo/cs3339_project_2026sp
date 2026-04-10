@@ -298,4 +298,13 @@
 (assert (= (read-register 20) #b11)) ;; $s4 = reg[20]
 (assert (= *pc* 32))
 
+
+(execute-one-cycle "sw $s0, 0($zero)")
+(assert (= (read-data-memory 0) (read-register 16))) ;; $s0 = reg[16]
+(assert (= *pc* 36))
+
+(execute-one-cycle "lw $s2, 0($zero)")
+(assert (= (read-register 18) 15)) ;; $s2 = reg[18]
+(assert (= *pc* 40))
+
 (format t "~%✅ All Integration test passed!!~%")
