@@ -254,4 +254,12 @@
 
 ;; ------------------------------------ execute one cycle
 
+;; reset register and program counter
+(setf *pc* 0)
+(fill *register* 0)
+
+(execute-one-cycle "addi $t0, $zero, 5") ;; $t0 supposed to be 5
+(assert (= (read-register 8) 5)) ;; $t0 = reg[8]
+(assert (= *pc* 4))
+
 (format t "~%✅ All Integration test passed!!~%")
