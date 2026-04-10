@@ -282,4 +282,12 @@
 (assert (= (read-register 17) #b1111)) ;; $s1 = reg[17]
 (assert (= *pc* 24))
 
+(execute-one-cycle "sll $s4, $s0, 2")
+(assert (= (read-register 20) #b111100)) ;; $s4 = reg[20]
+(assert (= *pc* 28))
+
+(execute-one-cycle "srl $s4, $s0, 2")
+(assert (= (read-register 20) #b11)) ;; $s4 = reg[20]
+(assert (= *pc* 32))
+
 (format t "~%✅ All Integration test passed!!~%")
