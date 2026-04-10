@@ -226,7 +226,10 @@
 				  (#b0010 (+ in1 in2))
 				  (#b0110 (- in1 in2))
 				  (#b0111 (if (< in1 in2) 1 0))
-				  (#b1100 (logand #xFFFFFFFF (lognot (logior in1 in2))))))) ;; NOR
+				  (#b1100 (logand #xFFFFFFFF (lognot (logior in1 in2)))) ;; NOR
+				  (#b1110 (ash in2 in1)) ;; sll, shift left logical
+				  (#b1111 (ash in2 (- in1))) ;; srl, shift right logical
+				  )))
   (list result (if (zerop result) 1 0))))
 
 
