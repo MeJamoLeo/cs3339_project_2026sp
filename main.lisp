@@ -330,9 +330,7 @@
 	(list :instruction instruction :pc+4 pc+4)))
 
 (defun stage-id (if-id)
-  (let* ((instruction (getf if-id :instruction))
-		 (decoded  (decode instruction))
-		 ;; decode
+  (let* ((decoded  (decode (getf if-id :instruction)))
 		 (opcode (getf decoded :opcode))
 		 ;; control
 		 (control-signals (control opcode))
