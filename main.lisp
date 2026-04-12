@@ -332,20 +332,30 @@
 (defun stage-id (if-id)
   (let* ((instruction (getf if-id :instruction))
 		 (decoded  (decode instruction))
-		 (control-signals (control (getf decoded :opcode)))
-		 (pc+4 (getf if-id :pc+4))
+		 ;; decode
+		 (opcode (getf decoded :opcode))
+		 ;; control
+		 (control-signals (control opcode))
+		 ;(rs (getf decoded :rs)) may need for hazard
+		 (rt (getf decoded :rt))
+		 (rd (getf decoded :rd))
+		 (shamt (getf decoded :shamt))
+		 (funct (getf decoded :funct))
+		 (sign-extended (sign-extend(getf decoded :imm)))
+		 (addr (getf decoded :addr))
+		 ;; register read
 		 (data1 (read-register (getf decoded :rs)))
-		 (rt (getf decoded :rt)) ;; inst[20-16]
-		 (data2 (read-register rt))
-		 (rd (getf decoded :rd)) ;; inst[15-11]
-		 (sign-extended (sign-extend (getf decoded :imm))))
+		 (data2 (read-register (getf decoded :rt))))
 	(list :control-signals 	control-signals
-		  :pc+4				pc+4
+		  :pc+4				(getf if-id :pc+4)
 		  :data1			data1
 		  :data2			data2
 		  :sign-extended	sign-extended
 		  :rt				rt
-		  :rd				rd)))
+		  :rd				rd
+		  :shamt			shamt
+		  :funct			funct
+		  :addr				addr)))
 
 (defparameter *instruction-memory* #())
 
