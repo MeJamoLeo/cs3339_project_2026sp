@@ -329,6 +329,24 @@
 		  (pc+4 (+ pc 4)))
 	(list :instruction instruction :pc+4 pc+4)))
 
+(defun stage-id (if-id)
+  (let* ((instruction (getf if-id :instruction))
+		 (decoded  (decode instruction))
+		 (control-signals (control (getf decoded :opcode)))
+		 (pc+4 (getf if-id :pc+4))
+		 (data1 (read-register (getf decoded :rs)))
+		 (rt (getf decoded :rt)) ;; inst[20-16]
+		 (data2 (read-register rt))
+		 (rd (getf decoded :rd)) ;; inst[15-11]
+		 (sign-extended (sign-extend (getf decoded :imm))))
+	(list :control-signals 	control-signals
+		  :pc+4				pc+4
+		  :data1			data1
+		  :data2			data2
+		  :sign-extended	sign-extended
+		  :rt				rt
+		  :rd				rd)))
+
 (defparameter *instruction-memory* #())
 
 (defun main ()
