@@ -188,7 +188,7 @@
 (assert (= (getf (alu-control #b10 #b100101) :alu-operation) #b0001)) ;; or   (funct=37)
 (assert (= (getf (alu-control #b10 #b101010) :alu-operation) #b0111)) ;; slt  (funct=42)
 
-;; sll/srl → alu-in1-src=1 (use data2 instead of data1)
+;; sll/srl → alu-in1-src=1 (use data-reg-read2 instead of data-reg-read1)
 (assert (= (getf (alu-control #b10 #b000000) :alu-operation) #b1110)) ;; sll  (funct=0)
 (assert (= (getf (alu-control #b10 #b000000) :alu-in1-src) 1))
 (assert (= (getf (alu-control #b10 #b000010) :alu-operation) #b1111)) ;; srl  (funct=2)
@@ -351,8 +351,8 @@
 					   :jump 0
 					   :alu-op 0)
 					 :pc+4 4
-					 :data1 0
-					 :data2 0
+					 :data-reg-read1 0
+					 :data-reg-read2 0
 					 :sign-extended #b00000000000000000000000000001010
 					 :rt 9
 					 :rd 0

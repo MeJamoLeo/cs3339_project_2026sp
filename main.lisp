@@ -276,17 +276,17 @@
 		 ;; control
 		 (control-signals (control opcode))
 		 ;; register read
-		 (data1 (read-register rs))
-		 (data2 (read-register rt))
+		 (data-reg-read1 (read-register rs))
+		 (data-reg-read2 (read-register rt))
 
 		 ;; ALU
 		 (alu-ctrl-signals (alu-control (getf control-signals :alu-op) funct))
 		 (alu-output (alu (if (= (getf alu-ctrl-signals :alu-in1-src) 1)
 							  shamt
-							  data1)
+							  data-reg-read1)
 						  (if (= (getf control-signals :alu-src) 1)
 							  (sign-extend imm)
-							  data2)
+							  data-reg-read2)
 						  (getf alu-ctrl-signals :alu-operation)))
 		 (alu-result (first alu-output))
 		 (alu-zero (second alu-output))
@@ -319,7 +319,7 @@
 	(when (= (getf control-signals :reg-write) 1)
 	  (write-register write-reg write-data))
 	(when (= (getf control-signals :mem-write) 1)
-	  (write-data-memory alu-result data2))
+	  (write-data-memory alu-result data-reg-read2))
 	(setf *pc* next-pc)
 	))
 
@@ -343,12 +343,12 @@
 		 (sign-extended (sign-extend(getf decoded :imm)))
 		 (addr (getf decoded :addr))
 		 ;; register read
-		 (data1 (read-register rs))
-		 (data2 (read-register rt)))
+		 (data-reg-read1 (read-register rs))
+		 (data-reg-read2 (read-register rt)))
 	(list :control-signals 	control-signals
 		  :pc+4				(getf if-id :pc+4)
-		  :data1			data1
-		  :data2			data2
+		  :data-reg-read1	data-reg-read1
+		  :data-reg-read2	data-reg-read2
 		  :sign-extended	sign-extended
 		  :rt				rt
 		  :rd				rd
