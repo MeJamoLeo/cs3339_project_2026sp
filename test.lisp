@@ -340,25 +340,25 @@
  ;; "addi $t0, $zero, 5"
 (assert (equal (stage-id (list :pc+4 *pc*
 							   :instruction #b00100000000010010000000000001010))
-			   ( list :control-signals
-					  '(:reg-dst 0
-						:alu-src 1
-						:mem-to-reg 0
-						:reg-write 1
-						:mem-read 0
-						:mem-write 0
-						:branch 0
-						:jump 0
-						:alu-op 0)
-					  :pc+4 4
-					  :data1 0
-					  :data2 0
-					  :sign-extended #b00000000000000000000000000001010
-					  :rt 9
-					  :rd 0
-					  :shamt #b00000
-					  :funct #b001010
-					  :addr #b00000010010000000000001010
-					  )))
+			   (list :control-signals
+					 '(:reg-dst 0
+					   :alu-src 1
+					   :mem-to-reg 0
+					   :reg-write 1
+					   :mem-read 0
+					   :mem-write 0
+					   :branch 0
+					   :jump 0
+					   :alu-op 0)
+					 :pc+4 4
+					 :data1 0
+					 :data2 0
+					 :sign-extended #b00000000000000000000000000001010
+					 :rt 9
+					 :rd 0
+					 :shamt #b00000
+					 :funct #b001010
+					 :addr #b00000010010000000000001010
+					 )))
 
 (format t "~%✅ All Integration test passed!!~%")
