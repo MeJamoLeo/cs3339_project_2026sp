@@ -235,7 +235,8 @@
 				  (#b1110 (ash in2 in1)) ;; sll, shift left logical
 				  (#b1111 (ash in2 (- in1))) ;; srl, shift right logical
 				  )))
-  (list result (if (zerop result) 1 0))))
+	(list result: result
+		  zero: (if (zerop result) 1 0))))
 
 
 ;; register
