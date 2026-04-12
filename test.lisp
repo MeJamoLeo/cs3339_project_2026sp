@@ -353,8 +353,12 @@
 					  :pc+4 4
 					  :data1 0
 					  :data2 0
-					  :sign-extended 10
+					  :sign-extended #b00000000000000000000000000001010
 					  :rt 9
-					  :rd 0)))
+					  :rd 0
+					  :shamt #b00000
+					  :funct #b001010
+					  :addr #b00000010010000000000001010
+					  )))
 
 (format t "~%✅ All Integration test passed!!~%")
