@@ -235,8 +235,8 @@
 				  (#b1110 (ash in2 in1)) ;; sll, shift left logical
 				  (#b1111 (ash in2 (- in1))) ;; srl, shift right logical
 				  )))
-	(list result: result
-		  zero: (if (zerop result) 1 0))))
+	(list :result result
+		  :zero (if (zerop result) 1 0))))
 
 
 ;; register
@@ -355,6 +355,30 @@
 		  :shamt			shamt
 		  :funct			funct
 		  :addr				addr)))
+
+(defun stage-ex (id-exec)
+  (let* (
+		 (alu-operation (alu-control (getf id-exec alu-op)))
+		 (data-reg-read2 (getf id-exec :data-reg-read2))
+		 (alu-output (alu (if (= (getf alu-ctrl-signals :alu-in1-src) 1) ;; MUX for shifter, sll srl
+							  shamt
+							  (getf id-exec :data-reg-read1))
+						  (if (= (getf control-signals :alu-src) 1) ;; MUX for ALUSrc
+							  (sign-extend imm)
+							  data-reg-read2)
+						  alu-operation))
+		 (write-reg (if (eq (getf control-signals :reg-dst) 1) ;; MUX for RegDst
+						(getf id-exec :rd)
+						(getf id-exec :rt)))
+		 )
+	(list :branch-target	(adder (getf id-exec :pc+4)
+								  (ash (getf id-exec :sign-extended) 2)) ;; 2 bits left shift
+		  :alu-zero			(getf alu-output :zero)
+		  :alu-result		(getf alu-output :result)
+		  :data-mem-write	data-reg-read2
+		  :register-dst		(if (eq (getf control-signals :reg-dst) 1)
+								(getf if-exec :rd)
+								(getf if-exec :rt)))))
 
 (defparameter *instruction-memory* #())
 
