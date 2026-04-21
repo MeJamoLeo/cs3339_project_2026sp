@@ -380,6 +380,19 @@
 		  :data-mem-write  data-reg-read2
 		  :write-reg       write-reg)))
 
+(defun stage-mem (ex-mem)
+  (let* ((control-signals (getf ex-mem :control-signals))
+		 (alu-result      (getf ex-mem :alu-result))
+		 (mem-data (if (= (getf control-signals :mem-read) 1)
+					   (read-data-memory alu-result)
+					   0)))
+	(when (= (getf control-signals :mem-write) 1)
+	  (write-data-memory alu-result (getf ex-mem :data-mem-write)))
+	(list :control-signals control-signals
+		  :mem-data        mem-data
+		  :alu-result      alu-result
+		  :write-reg       (getf ex-mem :write-reg))))
+
 (defparameter *instruction-memory* #())
 
 (defun main ()
