@@ -288,8 +288,8 @@
 							  (sign-extend imm)
 							  data-reg-read2)
 						  (getf alu-ctrl-signals :alu-operation)))
-		 (alu-result (first alu-output))
-		 (alu-zero (second alu-output))
+		 (alu-result (getf alu-output :result))
+		 (alu-zero (getf alu-output :zero))
 
 		 ;; Memory
 		 (mem-data (if (= (getf control-signals :mem-read) 1)

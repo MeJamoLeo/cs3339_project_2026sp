@@ -196,44 +196,44 @@
 
 ;; ------------------------------------ alu
 ;; AND ALUOp=0000
-(assert (equal (alu 1 1 #b0000) '(1 0)))
-(assert (equal (alu 1 0 #b0000) '(0 1)))
-(assert (equal (alu 0 1 #b0000) '(0 1)))
-(assert (equal (alu 0 0 #b0000) '(0 1)))
-(assert (equal (alu #b10001010 #b01111010  #b0000) '(#b00001010 0)))
-(assert (equal (alu #b10001010 #b01110101  #b0000) '(#b00000000 1)))
+(assert (equal (alu 1 1 #b0000) '(:result 1 :zero 0)))
+(assert (equal (alu 1 0 #b0000) '(:result 0 :zero 1)))
+(assert (equal (alu 0 1 #b0000) '(:result 0 :zero 1)))
+(assert (equal (alu 0 0 #b0000) '(:result 0 :zero 1)))
+(assert (equal (alu #b10001010 #b01111010  #b0000) '(:result #b00001010 :zero 0)))
+(assert (equal (alu #b10001010 #b01110101  #b0000) '(:result #b00000000 :zero 1)))
 ;; OR ALUOp=0001
-(assert (equal (alu 1 1 #b0001) '(1 0)))
-(assert (equal (alu 1 0 #b0001) '(1 0)))
-(assert (equal (alu 0 1 #b0001) '(1 0)))
-(assert (equal (alu 0 0 #b0001) '(0 1)))
-(assert (equal (alu #b10001010 #b01111010  #b0001) '(#b11111010 0)))
-(assert (equal (alu #b10001010 #b01110101  #b0001) '(#b11111111 0)))
+(assert (equal (alu 1 1 #b0001) '(:result 1 :zero 0)))
+(assert (equal (alu 1 0 #b0001) '(:result 1 :zero 0)))
+(assert (equal (alu 0 1 #b0001) '(:result 1 :zero 0)))
+(assert (equal (alu 0 0 #b0001) '(:result 0 :zero 1)))
+(assert (equal (alu #b10001010 #b01111010  #b0001) '(:result #b11111010 :zero 0)))
+(assert (equal (alu #b10001010 #b01110101  #b0001) '(:result #b11111111 :zero 0)))
 ;; Add ALUOp=0001
-(assert (equal (alu 1 1 #b0010) '(2 0)))
-(assert (equal (alu 1 0 #b0010) '(1 0)))
-(assert (equal (alu 0 1 #b0010) '(1 0)))
-(assert (equal (alu 0 0 #b0010) '(0 1)))
-(assert (equal (alu 32 40  #b0010) '(72 0)))
-(assert (equal (alu -32 40  #b0010) '(8 0)))
+(assert (equal (alu 1 1 #b0010) '(:result 2 :zero 0)))
+(assert (equal (alu 1 0 #b0010) '(:result 1 :zero 0)))
+(assert (equal (alu 0 1 #b0010) '(:result 1 :zero 0)))
+(assert (equal (alu 0 0 #b0010) '(:result 0 :zero 1)))
+(assert (equal (alu 32 40  #b0010) '(:result 72 :zero 0)))
+(assert (equal (alu -32 40  #b0010) '(:result 8 :zero 0)))
 ;; Sub ALUOp=0110
-(assert (equal (alu 1 1 #b0110) '(0 1)))
-(assert (equal (alu 1 0 #b0110) '(1 0)))
-(assert (equal (alu 0 1 #b0110) '(-1 0)))
-(assert (equal (alu 0 0 #b0110) '(0 1)))
-(assert (equal (alu 32 40  #b0110) '(-8 0)))
-(assert (equal (alu -32 40  #b0110) '(-72 0)))
+(assert (equal (alu 1 1 #b0110) '(:result 0 :zero 1)))
+(assert (equal (alu 1 0 #b0110) '(:result 1 :zero 0)))
+(assert (equal (alu 0 1 #b0110) '(:result -1 :zero 0)))
+(assert (equal (alu 0 0 #b0110) '(:result 0 :zero 1)))
+(assert (equal (alu 32 40  #b0110) '(:result -8 :zero 0)))
+(assert (equal (alu -32 40  #b0110) '(:result -72 :zero 0)))
 ;; set on less than ALUOp=0111
-(assert (equal (alu 1 1 #b0111) '(0 1)))
-(assert (equal (alu 1 0 #b0111) '(0 1)))
-(assert (equal (alu 1 99 #b0111) '(1 0)))
+(assert (equal (alu 1 1 #b0111) '(:result 0 :zero 1)))
+(assert (equal (alu 1 0 #b0111) '(:result 0 :zero 1)))
+(assert (equal (alu 1 99 #b0111) '(:result 1 :zero 0)))
 ;; NOR ALUOp=1100
-(assert (equal (alu 0 0 #b1100) '(#xFFFFFFFF 0))) ;; 0=#x00000000
-(assert (equal (alu #x00000000 #x00000000 #b1100) '(#xFFFFFFFF 0)))
-(assert (equal (alu 1 0 #b1100) '(#xFFFFFFFE 0))) ;; 1=#x00000001
-(assert (equal (alu 1 1 #b1100) '(#xFFFFFFFE 0)))
-(assert (equal (alu #xFFFFFFFF #xFFFFFFFF #b1100) '(#x00000000 1)))
-(assert (equal (alu #xFFFFFFFF #x00000000 #b1100) '(#x00000000 1)))
+(assert (equal (alu 0 0 #b1100) '(:result #xFFFFFFFF :zero 0))) ;; 0=#x00000000
+(assert (equal (alu #x00000000 #x00000000 #b1100) '(:result #xFFFFFFFF :zero 0)))
+(assert (equal (alu 1 0 #b1100) '(:result #xFFFFFFFE :zero 0))) ;; 1=#x00000001
+(assert (equal (alu 1 1 #b1100) '(:result #xFFFFFFFE :zero 0)))
+(assert (equal (alu #xFFFFFFFF #xFFFFFFFF #b1100) '(:result #x00000000 :zero 1)))
+(assert (equal (alu #xFFFFFFFF #x00000000 #b1100) '(:result #x00000000 :zero 1)))
 
 ;; ------------------------------------ register
 (assert (= (read-data-memory 0) 0))
