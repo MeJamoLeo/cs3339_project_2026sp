@@ -361,4 +361,62 @@
 					 :addr #b00000010010000000000001010
 					 )))
 
+;; ------------------------------------ stage-ex
+;; I-type: addi $t0, $zero, 5  (ALUSrc=1 path)
+(assert (equal (stage-ex
+				 (list :control-signals '(:reg-dst 0 :alu-src 1 :mem-to-reg 0
+										  :reg-write 1 :mem-read 0 :mem-write 0
+										  :branch 0 :jump 0 :alu-op 0)
+					   :pc+4 4
+					   :data-reg-read1 0
+					   :data-reg-read2 0
+					   :sign-extended 5
+					   :rt 8  :rd 0  :shamt 0  :funct 5  :addr 0))
+			   (list :control-signals '(:reg-dst 0 :alu-src 1 :mem-to-reg 0
+										:reg-write 1 :mem-read 0 :mem-write 0
+										:branch 0 :jump 0 :alu-op 0)
+					 :branch-target 24
+					 :alu-zero      0
+					 :alu-result    5
+					 :data-mem-write 0
+					 :write-reg     8)))
+
+;; R-type: add $s0, $t0, $t1  (ALUSrc=0, RegDst=1 path)   $t0=5, $t1=10
+(assert (equal (stage-ex
+				 (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+										  :reg-write 1 :mem-read 0 :mem-write 0
+										  :branch 0 :jump 0 :alu-op #b10)
+					   :pc+4 12
+					   :data-reg-read1 5
+					   :data-reg-read2 10
+					   :sign-extended 0
+					   :rt 9  :rd 16  :shamt 0  :funct #b100000  :addr 0))
+			   (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+										:reg-write 1 :mem-read 0 :mem-write 0
+										:branch 0 :jump 0 :alu-op #b10)
+					 :branch-target 12
+					 :alu-zero      0
+					 :alu-result    15
+					 :data-mem-write 10
+					 :write-reg     16)))
+
+;; SLL: sll $s4, $s0, 2  (alu-in1-src=1 path, shamt へ MUX)   $s0=5
+(assert (equal (stage-ex
+				 (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+										  :reg-write 1 :mem-read 0 :mem-write 0
+										  :branch 0 :jump 0 :alu-op #b10)
+					   :pc+4 20
+					   :data-reg-read1 0
+					   :data-reg-read2 5
+					   :sign-extended 0
+					   :rt 16  :rd 20  :shamt 2  :funct #b000000  :addr 0))
+			   (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+										:reg-write 1 :mem-read 0 :mem-write 0
+										:branch 0 :jump 0 :alu-op #b10)
+					 :branch-target 20
+					 :alu-zero      0
+					 :alu-result    20
+					 :data-mem-write 5
+					 :write-reg     20)))
+
 (format t "~%✅ All Integration test passed!!~%")
