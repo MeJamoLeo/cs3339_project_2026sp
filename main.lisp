@@ -469,13 +469,3 @@
   (loop until (pipeline-drained-p)
 		do (pipeline-cycle)))
 
-(defun main ()
-  (let ((instructions (mapcar #'encode (parse-assembly "./input"))))
-	(loop while (< (/ *pc* 4) (length instructions))
-		  for instruction = (nth (/ *pc* 4) instructions)
-		  for decoded = (decode instruction)
-		  do
-		  ;(print-decoded decoded) ; for debug
-		  (setf *pc* (+ *pc* 4)) ; for ending loop
-		  )))
-(main)
