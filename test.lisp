@@ -419,4 +419,53 @@
 					 :data-mem-write 5
 					 :write-reg     20)))
 
+;; ------------------------------------ stage-mem
+;; LW: mem-read=1, should return memory contents as :mem-data
+(fill *data-memory* 0)
+(write-data-memory 0 42)  ;; pre-populate addr 0
+(assert (equal (stage-mem
+				 (list :control-signals '(:reg-dst 0 :alu-src 1 :mem-to-reg 1
+										  :reg-write 1 :mem-read 1 :mem-write 0
+										  :branch 0 :jump 0 :alu-op 0)
+					   :branch-target 0
+					   :alu-zero       0
+					   :alu-result     0
+					   :data-mem-write 0
+					   :write-reg      10))
+			   (list :control-signals '(:reg-dst 0 :alu-src 1 :mem-to-reg 1
+										:reg-write 1 :mem-read 1 :mem-write 0
+										:branch 0 :jump 0 :alu-op 0)
+					 :mem-data   42
+					 :alu-result 0
+					 :write-reg  10)))
+
+;; SW: mem-write=1, should store :data-mem-write into memory[:alu-result]
+(fill *data-memory* 0)
+(stage-mem (list :control-signals '(:reg-dst nil :alu-src 1 :mem-to-reg nil
+									 :reg-write 0 :mem-read 0 :mem-write 1
+									 :branch 0 :jump 0 :alu-op 0)
+				 :branch-target 0
+				 :alu-zero       0
+				 :alu-result     4
+				 :data-mem-write 99
+				 :write-reg      0))
+(assert (= (read-data-memory 4) 99))
+
+;; R-type: mem-read=0, mem-write=0, :mem-data falls through as 0
+(assert (equal (stage-mem
+				 (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+										  :reg-write 1 :mem-read 0 :mem-write 0
+										  :branch 0 :jump 0 :alu-op #b10)
+					   :branch-target 0
+					   :alu-zero       0
+					   :alu-result     15
+					   :data-mem-write 0
+					   :write-reg      16))
+			   (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+										:reg-write 1 :mem-read 0 :mem-write 0
+										:branch 0 :jump 0 :alu-op #b10)
+					 :mem-data   0
+					 :alu-result 15
+					 :write-reg  16)))
+
 (format t "~%✅ All Integration test passed!!~%")
