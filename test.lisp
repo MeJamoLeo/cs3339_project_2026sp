@@ -499,4 +499,51 @@
 				:write-reg  0))
 (assert (= (read-register 0) 0))
 
+;; ------------------------------------ pipeline-cycle (double buffering)
+(defun pipeline-reset ()
+  (setf *pc* 0
+		*if-id* nil *id-ex* nil *ex-mem* nil *mem-wb* nil)
+  (fill *register* 0)
+  (fill *data-memory* 0))
+
+(defun load-program (lines)
+  (setf *instruction-memory*
+		(coerce (mapcar (lambda (s) (encode (split-by-spaces (normalize s))))
+						lines)
+				'vector)))
+
+;; Case 1: two independent addi (no NOPs needed)
+(pipeline-reset)
+(load-program '("addi $t0, $zero, 5"
+				"addi $t1, $zero, 10"))
+(run-pipeline)
+(assert (= (read-register 8) 5))   ;; $t0
+(assert (= (read-register 9) 10))  ;; $t1
+
+;; Case 2: dependent add with 2 NOPs (half-cycle RF => 2 bubbles enough)
+(pipeline-reset)
+(load-program '("addi $t0, $zero, 5"
+				"addi $t1, $zero, 10"
+				"nop"
+				"nop"
+				"add $s0, $t0, $t1"))
+(run-pipeline)
+(assert (= (read-register 8) 5))
+(assert (= (read-register 9) 10))
+(assert (= (read-register 16) 15)) ;; $s0
+
+;; Case 3: SW then LW roundtrip (with NOPs)
+(pipeline-reset)
+(load-program '("addi $t0, $zero, 42"
+				"addi $sp, $zero, 100"
+				"nop"
+				"nop"
+				"sw $t0, 0 $sp"
+				"nop"
+				"nop"
+				"lw $t1, 0 $sp"))
+(run-pipeline)
+(assert (= (read-register 9) 42))   ;; $t1 got the loaded value
+(assert (= (read-data-memory 100) 42))
+
 (format t "~%✅ All Integration test passed!!~%")
