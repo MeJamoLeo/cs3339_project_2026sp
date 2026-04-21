@@ -393,6 +393,14 @@
 		  :alu-result      alu-result
 		  :write-reg       (getf ex-mem :write-reg))))
 
+(defun stage-wb (mem-wb)
+  (let ((control-signals (getf mem-wb :control-signals)))
+	(when (= (getf control-signals :reg-write) 1)
+	  (let ((write-data (if (= (getf control-signals :mem-to-reg) 1) ;; MUX for MemToReg
+							(getf mem-wb :mem-data)
+							(getf mem-wb :alu-result))))
+		(write-register (getf mem-wb :write-reg) write-data)))))
+
 (defparameter *instruction-memory* #())
 
 (defun main ()
