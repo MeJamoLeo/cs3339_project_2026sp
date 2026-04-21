@@ -370,7 +370,7 @@
 		 (alu-output (alu alu-in1 alu-in2 (getf alu-ctrl-signals :alu-operation)))
 		 (branch-target (adder (getf id-exec :pc+4)
 							   (ash (getf id-exec :sign-extended) 2))) ;; shift left 2
-		 (write-reg (if (= (getf control-signals :reg-dst) 1) ;; MUX for RegDst
+		 (write-reg (if (eql (getf control-signals :reg-dst) 1) ;; MUX for RegDst (eql: reg-dst may be nil for SW/BEQ/J)
 						(getf id-exec :rd)
 						(getf id-exec :rt))))
 	(list :control-signals control-signals
