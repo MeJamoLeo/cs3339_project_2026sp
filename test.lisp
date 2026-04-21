@@ -565,4 +565,54 @@
 (run-pipeline)
 (assert (= (read-register 16) 21)) ;; $s0
 
+;; Case 5: beq taken (t0 == t1 → skip two instructions, land on target)
+(pipeline-reset)
+(load-program '("addi $t0, $zero, 5"    ; PC 0
+				"addi $t1, $zero, 5"    ; PC 4
+				"nop"                   ; PC 8
+				"nop"                   ; PC 12
+				"beq $t0, $t1, 4"       ; PC 16 → target = 20 + 16 = 36
+				"nop"                   ; PC 20 delay slot 1
+				"nop"                   ; PC 24 delay slot 2
+				"addi $t2, $zero, 99"   ; PC 28 skipped
+				"addi $t3, $zero, 42"   ; PC 32 skipped
+				"addi $t4, $zero, 7"))  ; PC 36 target
+(run-pipeline)
+(assert (= (read-register 8) 5))     ;; $t0
+(assert (= (read-register 9) 5))     ;; $t1
+(assert (= (read-register 10) 0))    ;; $t2 skipped
+(assert (= (read-register 11) 0))    ;; $t3 skipped
+(assert (= (read-register 12) 7))    ;; $t4
+
+;; Case 6: beq not taken (t0 != t1 → fall through, no skip)
+(pipeline-reset)
+(load-program '("addi $t0, $zero, 5"
+				"addi $t1, $zero, 9"
+				"nop"
+				"nop"
+				"beq $t0, $t1, 4"       ;; not taken
+				"nop"
+				"nop"
+				"addi $t2, $zero, 99"   ;; executes
+				"addi $t3, $zero, 42"   ;; executes
+				"addi $t4, $zero, 7"))  ;; executes
+(run-pipeline)
+(assert (= (read-register 10) 99))
+(assert (= (read-register 11) 42))
+(assert (= (read-register 12) 7))
+
+;; Case 7: j (resolved in ID, one delay slot)
+(pipeline-reset)
+(load-program '("addi $t0, $zero, 42"  ; PC 0
+				"j 5"                   ; PC 4 → target word 5 = byte 20
+				"nop"                   ; PC 8 delay slot
+				"addi $t1, $zero, 99"   ; PC 12 skipped
+				"addi $t2, $zero, 77"   ; PC 16 skipped
+				"addi $t3, $zero, 7"))  ; PC 20 target
+(run-pipeline)
+(assert (= (read-register 8) 42))    ;; $t0
+(assert (= (read-register 9) 0))     ;; $t1 skipped
+(assert (= (read-register 10) 0))    ;; $t2 skipped
+(assert (= (read-register 11) 7))    ;; $t3
+
 (format t "~%✅ All Integration test passed!!~%")
