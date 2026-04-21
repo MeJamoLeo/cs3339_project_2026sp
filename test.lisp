@@ -468,4 +468,35 @@
 					 :alu-result 15
 					 :write-reg  16)))
 
+;; ------------------------------------ stage-wb
+;; R-type (mem-to-reg=0, reg-write=1): alu-result goes to the register
+(fill *register* 0)
+(stage-wb (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+								   :reg-write 1 :mem-read 0 :mem-write 0
+								   :branch 0 :jump 0 :alu-op #b10)
+				:mem-data   0
+				:alu-result 15
+				:write-reg  16))
+(assert (= (read-register 16) 15))
+
+;; LW (mem-to-reg=1, reg-write=1): mem-data goes to the register
+(fill *register* 0)
+(stage-wb (list :control-signals '(:reg-dst 0 :alu-src 1 :mem-to-reg 1
+								   :reg-write 1 :mem-read 1 :mem-write 0
+								   :branch 0 :jump 0 :alu-op 0)
+				:mem-data   42
+				:alu-result 0
+				:write-reg  10))
+(assert (= (read-register 10) 42))
+
+;; SW (reg-write=0): no register change
+(fill *register* 0)
+(stage-wb (list :control-signals '(:reg-dst nil :alu-src 1 :mem-to-reg nil
+								   :reg-write 0 :mem-read 0 :mem-write 1
+								   :branch 0 :jump 0 :alu-op 0)
+				:mem-data   0
+				:alu-result 99
+				:write-reg  0))
+(assert (= (read-register 0) 0))
+
 (format t "~%✅ All Integration test passed!!~%")
