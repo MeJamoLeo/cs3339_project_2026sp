@@ -356,6 +356,30 @@
 		  :funct			funct
 		  :addr				addr)))
 
+(defun stage-ex (id-exec)
+  (let* ((control-signals  (getf id-exec :control-signals))
+		 (alu-ctrl-signals (alu-control (getf control-signals :alu-op)
+										(getf id-exec :funct)))
+		 (data-reg-read2   (getf id-exec :data-reg-read2))
+		 (alu-in1 (if (= (getf alu-ctrl-signals :alu-in1-src) 1) ;; MUX for shifter, sll/srl
+					  (getf id-exec :shamt)
+					  (getf id-exec :data-reg-read1)))
+		 (alu-in2 (if (= (getf control-signals :alu-src) 1) ;; MUX for ALUSrc
+					  (getf id-exec :sign-extended)
+					  data-reg-read2))
+		 (alu-output (alu alu-in1 alu-in2 (getf alu-ctrl-signals :alu-operation)))
+		 (branch-target (adder (getf id-exec :pc+4)
+							   (ash (getf id-exec :sign-extended) 2))) ;; shift left 2
+		 (write-reg (if (= (getf control-signals :reg-dst) 1) ;; MUX for RegDst
+						(getf id-exec :rd)
+						(getf id-exec :rt))))
+	(list :control-signals control-signals
+		  :branch-target   branch-target
+		  :alu-zero        (getf alu-output :zero)
+		  :alu-result      (getf alu-output :result)
+		  :data-mem-write  data-reg-read2
+		  :write-reg       write-reg)))
+
 (defparameter *instruction-memory* #())
 
 (defun main ()
