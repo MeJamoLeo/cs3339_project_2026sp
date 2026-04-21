@@ -58,7 +58,7 @@
 										  '(("add" :r #b100000 (rd rs rt)) ;;32, signed integer addition
 											("addi" :i #b001000 (rt rs imm)) ;; 8, add immediate
 											("sub" :r #b100010 (rd rs rt)) ;; 34, signed integer subtraction
-											;("mult" :r #b011000 ()) ;; 24, integer multiplication
+											("mul" :r #b011000 (rd rs rt)) ;; 24, integer multiplication (low 32 bits)
 											("and" :r #b100100 (rd rs rt)) ;; 36, bitwise and operation
 											("or" :r #b100101 (rd rs rt)) ;; 37, bitwise or operation
 											("sll" :r #b000000 (rd rt shamt)) ;; 0, shift left logical
@@ -217,6 +217,7 @@
 		   (#b100010 '(:alu-operation #b0110 :alu-in1-src 0)) ;; sub
 		   (#b100100 '(:alu-operation #b0000 :alu-in1-src 0)) ;; and
 		   (#b100101 '(:alu-operation #b0001 :alu-in1-src 0)) ;; or
+		   (#b011000 '(:alu-operation #b0011 :alu-in1-src 0)) ;; mul (low 32 bits)
 		   (#b101010 '(:alu-operation #b0111 :alu-in1-src 0)) ;; set on less than
 		   (#b000000 '(:alu-operation #b1110 :alu-in1-src 1)) ;; sll, shift left logical
 		   (#b000010 '(:alu-operation #b1111 :alu-in1-src 1)) ;; srl, shift right logical
@@ -229,6 +230,7 @@
 				  (#b0000 (logand in1 in2))
 				  (#b0001 (logior in1 in2))
 				  (#b0010 (+ in1 in2))
+				  (#b0011 (logand #xFFFFFFFF (* in1 in2))) ;; mul, low 32 bits
 				  (#b0110 (- in1 in2))
 				  (#b0111 (if (< in1 in2) 1 0))
 				  (#b1100 (logand #xFFFFFFFF (lognot (logior in1 in2)))) ;; NOR
