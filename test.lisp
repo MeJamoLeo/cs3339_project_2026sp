@@ -194,6 +194,10 @@
 (assert (= (getf (alu-control #b10 #b000010) :alu-operation) #b1111)) ;; srl  (funct=2)
 (assert (= (getf (alu-control #b10 #b000010) :alu-in1-src) 1))
 
+;; mul → alu-in1-src=0, alu-operation=0011
+(assert (= (getf (alu-control #b10 #b011000) :alu-operation) #b0011)) ;; mul  (funct=24)
+(assert (= (getf (alu-control #b10 #b011000) :alu-in1-src) 0))
+
 ;; ------------------------------------ alu
 ;; AND ALUOp=0000
 (assert (equal (alu 1 1 #b0000) '(:result 1 :zero 0)))
@@ -223,6 +227,11 @@
 (assert (equal (alu 0 0 #b0110) '(:result 0 :zero 1)))
 (assert (equal (alu 32 40  #b0110) '(:result -8 :zero 0)))
 (assert (equal (alu -32 40  #b0110) '(:result -72 :zero 0)))
+;; Mul ALUOp=0011 (low 32 bits)
+(assert (equal (alu 3 7 #b0011) '(:result 21 :zero 0)))
+(assert (equal (alu 0 42 #b0011) '(:result 0 :zero 1)))
+(assert (equal (alu 65535 65535 #b0011) '(:result #xFFFE0001 :zero 0))) ;; fits in 32 bits
+(assert (equal (alu #x10000 #x10000 #b0011) '(:result 0 :zero 1))) ;; overflow drops the top bit
 ;; set on less than ALUOp=0111
 (assert (equal (alu 1 1 #b0111) '(:result 0 :zero 1)))
 (assert (equal (alu 1 0 #b0111) '(:result 0 :zero 1)))
@@ -545,5 +554,15 @@
 (run-pipeline)
 (assert (= (read-register 9) 42))   ;; $t1 got the loaded value
 (assert (= (read-data-memory 100) 42))
+
+;; Case 4: mul with 2 NOPs (3 * 7 = 21)
+(pipeline-reset)
+(load-program '("addi $t0, $zero, 3"
+				"addi $t1, $zero, 7"
+				"nop"
+				"nop"
+				"mul $s0, $t0, $t1"))
+(run-pipeline)
+(assert (= (read-register 16) 21)) ;; $s0
 
 (format t "~%✅ All Integration test passed!!~%")
