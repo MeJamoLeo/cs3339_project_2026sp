@@ -403,6 +403,70 @@
 
 (defparameter *instruction-memory* #())
 
+;; ====================================
+;; Pipeline driver (double-buffered)
+;; ====================================
+;; Each pipeline register holds the value written at the end of the
+;; previous cycle. A cycle runs in two phases:
+;;   Phase 1 : every stage reads the old register values and computes
+;;             its new output into a local binding (no pipeline register
+;;             is overwritten). Register-file and data-memory writes
+;;             happen here; they model MIPS half-cycle semantics.
+;;   Phase 2 : all four pipeline registers and the PC are committed at
+;;             the same time. This mimics the clock edge in hardware.
+
+(defparameter *if-id*  nil)
+(defparameter *id-ex*  nil)
+(defparameter *ex-mem* nil)
+(defparameter *mem-wb* nil)
+
+(defun pc-in-range-p (pc)
+  (< (/ pc 4) (length *instruction-memory*)))
+
+(defun compute-next-pc (current-pc new-ex-mem new-id-ex)
+  (cond
+	;; branch taken (resolved in EX this cycle)
+	((and new-ex-mem
+		  (= (getf (getf new-ex-mem :control-signals) :branch) 1)
+		  (= (getf new-ex-mem :alu-zero) 1))
+	 (getf new-ex-mem :branch-target))
+	;; jump (resolved in ID this cycle)
+	((and new-id-ex
+		  (= (getf (getf new-id-ex :control-signals) :jump) 1))
+	 (logior (ash (getf new-id-ex :addr) 2)
+			 (logand (+ current-pc 4) #xF0000000)))
+	(t (+ current-pc 4))))
+
+(defun pipeline-cycle ()
+  ;; Phase 1a: commit the register-file write from the previous MEM/WB.
+  ;; Running stage-wb before stage-id models MIPS half-cycle semantics
+  ;; (WB writes in the first half, ID reads in the second half, so ID
+  ;; sees WB this cycle).
+  (when *mem-wb* (stage-wb *mem-wb*))
+  ;; Phase 1b: compute new pipeline register values from the old ones
+  (let* ((new-mem-wb (when *ex-mem* (stage-mem *ex-mem*)))
+		 (new-ex-mem (when *id-ex* (stage-ex *id-ex*)))
+		 (new-id-ex  (when *if-id* (stage-id *if-id*)))
+		 (fetched    (when (pc-in-range-p *pc*) (stage-if *pc*)))
+		 (next-pc    (compute-next-pc *pc* new-ex-mem new-id-ex)))
+	;; Phase 2: commit everything at once (the clock edge)
+	(setf *if-id*  fetched
+		  *id-ex*  new-id-ex
+		  *ex-mem* new-ex-mem
+		  *mem-wb* new-mem-wb
+		  *pc*     next-pc)))
+
+(defun pipeline-drained-p ()
+  (and (not (pc-in-range-p *pc*))
+	   (null *if-id*)
+	   (null *id-ex*)
+	   (null *ex-mem*)
+	   (null *mem-wb*)))
+
+(defun run-pipeline ()
+  (loop until (pipeline-drained-p)
+		do (pipeline-cycle)))
+
 (defun main ()
   (let ((instructions (mapcar #'encode (parse-assembly "./input"))))
 	(loop while (< (/ *pc* 4) (length instructions))
