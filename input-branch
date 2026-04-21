@@ -1,0 +1,9 @@
+addi $t0, $zero, 5
+addi $t1, $zero, 5
+nop
+nop
+beq $t0, $t1, 3
+nop
+nop
+addi $t2, $zero, 99
+addi $t3, $zero, 77

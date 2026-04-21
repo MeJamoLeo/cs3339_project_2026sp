@@ -1,0 +1,6 @@
+addi $t0, $zero, 42
+j 5
+nop
+addi $t1, $zero, 88
+addi $t2, $zero, 77
+addi $t3, $zero, 1

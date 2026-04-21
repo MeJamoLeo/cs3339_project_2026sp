@@ -1,0 +1,7 @@
+addi $t0, $zero, 6
+nop
+nop
+and $s3, $t0, $zero
+or $s4, $t0, $zero
+sll $s5, $t0, 2
+srl $s6, $t0, 1

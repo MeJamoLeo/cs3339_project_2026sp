@@ -1,0 +1,5 @@
+addi $t0, $zero, 12
+addi $t1, $zero, 10
+nop
+nop
+or $s0, $t0, $t1

@@ -1,0 +1,4 @@
+addi $t0, $zero, 16
+nop
+nop
+srl $s0, $t0, 2

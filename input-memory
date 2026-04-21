@@ -1,0 +1,8 @@
+addi $t0, $zero, 42
+addi $sp, $zero, 64
+nop
+nop
+sw $t0, 0($sp)
+nop
+nop
+lw $t1, 0($sp)

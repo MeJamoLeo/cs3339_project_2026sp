@@ -11,7 +11,7 @@
 
 # Allow .gitignore itself
 !.gitignore
-!input
+!input*
 
 # Allow Nix flake
 !flake.nix

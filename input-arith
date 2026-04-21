@@ -1,0 +1,9 @@
+addi $t0, $zero, 6
+addi $t1, $zero, 4
+nop
+nop
+add $s0, $t0, $t1
+nop
+nop
+sub $s1, $s0, $t1
+mul $s2, $t0, $t1
