@@ -81,6 +81,24 @@
   ;; edge), not the post-edge *pc* which is already the next cycle's PC.
   (format t "~%~%===== Cycle ~A  (fetch PC=#x~X) =====" cycle fetch-pc))
 
+(defun snapshot-registers ()
+  "Return a fresh copy of the register file for diffing across cycles."
+  (copy-seq *register*))
+
+(defun print-registers-grid (&optional prev)
+  "Print all 32 registers in an 8-column grid. If PREV is supplied,
+mark registers whose value changed since the last snapshot with '*'."
+  (format t "~&  Registers:")
+  (loop for row from 0 below 4 do
+		(format t "~&   ")
+		(loop for col from 0 below 8
+			  for i = (+ (* row 8) col)
+			  for v = (aref *register* i)
+			  for changed = (and prev (/= v (aref prev i)))
+			  do (format t " ~6A=~5D~A"
+						 (reg-name i) v
+						 (if changed "*" " ")))))
+
 (defun print-registers ()
   (format t "~&Registers (non-zero):")
   (let ((any nil))

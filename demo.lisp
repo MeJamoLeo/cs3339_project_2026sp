@@ -37,11 +37,15 @@ after every cycle. Always print the final register and memory
 state at the end."
   (reset-all)
   (load-assembly-file path)
-  (loop for cycle from 1
+  (loop with prev-regs = (snapshot-registers)
+		for cycle from 1
 		until (pipeline-drained-p)
 		for fetch-pc = *pc*
 		do (pipeline-cycle)
 		   (when debug
 			 (print-cycle-header cycle fetch-pc)
-			 (print-pipeline-state)))
+			 (print-pipeline-state)
+			 (print-registers-grid prev-regs)
+			 (print-memory-nonzero)
+			 (setf prev-regs (snapshot-registers))))
   (print-final-state))
