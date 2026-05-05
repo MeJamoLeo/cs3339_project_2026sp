@@ -8,6 +8,7 @@
 !*.lisp
 !*.png
 !*.tex
+!README.md
 
 # Allow .gitignore itself
 !.gitignore
