@@ -1,3 +1,13 @@
+;; Reverse lookup: register number -> symbolic name (e.g. 8 -> "$t0").
+(defparameter *register-names*
+  (let ((names (make-array 32 :initial-element nil)))
+	(maphash (lambda (name num) (setf (aref names num) name))
+			 *register-table*)
+	names))
+
+(defun reg-name (num)
+  (or (aref *register-names* num) (format nil "$~A" num)))
+
 ;; Side table holding the original assembly source for each instruction.
 ;; Indexed by inst-id (= PC/4) so the debugger can recover the mnemonic
 ;; without polluting the pipeline with strings.
