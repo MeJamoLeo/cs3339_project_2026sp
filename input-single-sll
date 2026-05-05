@@ -1,4 +1,0 @@
-addi $t0, $zero, 3
-nop
-nop
-sll $s0, $t0, 2
