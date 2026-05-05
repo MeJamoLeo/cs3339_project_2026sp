@@ -99,16 +99,6 @@ mark registers whose value changed since the last snapshot with '*'."
 						 (reg-name i) v
 						 (if changed "*" " ")))))
 
-(defun print-registers ()
-  (format t "~&Registers (non-zero):")
-  (let ((any nil))
-	(loop for i from 0 to 31
-		  for v = (aref *register* i)
-		  unless (zerop v)
-		  do (setf any t)
-			 (format t "~&  reg[~2D] = ~A" i v))
-	(unless any (format t "~&  (all zero)"))))
-
 (defun print-memory-nonzero ()
   (format t "~&Data memory (non-zero):")
   (let ((any nil))
