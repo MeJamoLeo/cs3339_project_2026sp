@@ -24,7 +24,7 @@
 		(coerce (mapcar #'encode (parse-assembly path))
 				'vector)))
 
-(defun demo (path &key (debug t))
+(defun demo (path &key (debug nil))
   "Run an assembly file through the pipelined simulator.
 When :debug is true, print the state of all pipeline registers
 after every cycle. Always print the final register and memory
