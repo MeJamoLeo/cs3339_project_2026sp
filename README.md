@@ -115,14 +115,17 @@ In `test.lisp`, the `main.lisp` file is loaded at beginning.
 - J-type: `j`
 - Other: `nop`
 
-## Example Assembly
+## What This Project Does Not Cover
 
-```asm
-addi $t0, $zero, 6
-addi $t1, $zero, 4
-nop
-nop
-add  $s0, $t0, $t1
-```
+- Hazard detection unit
+- Forwarding unit
+- Branch-taken flush
+- Labels in assembly
+- Floating-point instructions and FP registers
+- ALU overflow / carry flags
+- Cache hierarchy (memory is a flat one-cycle store)
 
-The simulator does not handle data hazards on its own, so you have to insert `nop` instructions by hand when you need them.
+Because there is no hazard handling, this project must insert `nop` instructions
+by hand between dependent instructions. Two `nop`s are enough thanks to
+the half-cycle write-back (WB writes the register file before ID reads
+it in the same cycle).

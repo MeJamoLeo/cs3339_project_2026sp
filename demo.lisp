@@ -19,10 +19,16 @@
   (fill *data-memory* 0))
 
 (defun load-assembly-file (path)
-  "Parse an assembly file and load it into instruction memory."
-  (setf *instruction-memory*
-		(coerce (mapcar #'encode (parse-assembly path))
-				'vector)))
+  "Parse an assembly file and load both the encoded instructions and the
+original source text. The source vector is parallel to the instruction
+memory and used by the debug layer for human-readable trace output."
+  (let* ((lines  (read-assembly path))
+		 (parsed (mapcar #'split-by-spaces lines)))
+	(setf *instruction-memory*
+		  (coerce (mapcar #'encode parsed) 'vector))
+	(setf *instruction-source*
+		  (coerce (mapcar (lambda (s) (string-trim " " s)) lines)
+				  'vector))))
 
 (defun demo (path &key (debug nil))
   "Run an assembly file through the pipelined simulator.
@@ -31,10 +37,17 @@ after every cycle. Always print the final register and memory
 state at the end."
   (reset-all)
   (load-assembly-file path)
-  (loop for cycle from 1
-		until (pipeline-drained-p)
-		do (pipeline-cycle)
-		   (when debug
-			 (print-cycle-header cycle)
-			 (print-pipeline-state)))
-  (print-final-state))
+  (let ((total-cycles
+		  (loop with prev-regs = (snapshot-registers)
+				for cycle from 1
+				until (pipeline-drained-p)
+				for fetch-pc = *pc*
+				do (pipeline-cycle)
+				   (when debug
+					 (print-cycle-header cycle fetch-pc)
+					 (print-pipeline-state)
+					 (print-registers-grid prev-regs)
+					 (print-memory-nonzero)
+					 (setf prev-regs (snapshot-registers)))
+				finally (return (1- cycle)))))
+	(print-final-state total-cycles)))
