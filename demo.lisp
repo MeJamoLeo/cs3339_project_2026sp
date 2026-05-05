@@ -39,8 +39,9 @@ state at the end."
   (load-assembly-file path)
   (loop for cycle from 1
 		until (pipeline-drained-p)
+		for fetch-pc = *pc*
 		do (pipeline-cycle)
 		   (when debug
-			 (print-cycle-header cycle)
+			 (print-cycle-header cycle fetch-pc)
 			 (print-pipeline-state)))
   (print-final-state))

@@ -110,8 +110,10 @@
 					  (format-control-signals (getf *mem-wb* :control-signals)))
 			  "(bubble)")))
 
-(defun print-cycle-header (cycle)
-  (format t "~%~%===== Cycle ~A  (PC=~A) =====" cycle *pc*))
+(defun print-cycle-header (cycle fetch-pc)
+  ;; fetch-pc is the PC used for IF this cycle (captured before the clock
+  ;; edge), not the post-edge *pc* which is already the next cycle's PC.
+  (format t "~%~%===== Cycle ~A  (fetch PC=#x~X) =====" cycle fetch-pc))
 
 (defun print-registers ()
   (format t "~&Registers (non-zero):")
