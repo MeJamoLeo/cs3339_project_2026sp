@@ -446,10 +446,10 @@
   ;; sees WB this cycle).
   (when *mem-wb* (stage-wb *mem-wb*))
   ;; Phase 1b: compute new pipeline register values from the old ones
-  (let* ((new-mem-wb (when *ex-mem* (stage-mem *ex-mem*)))
-		 (new-ex-mem (when *id-ex* (stage-ex *id-ex*)))
+  (let* ((fetched    (when (pc-in-range-p *pc*) (stage-if *pc*)))
 		 (new-id-ex  (when *if-id* (stage-id *if-id*)))
-		 (fetched    (when (pc-in-range-p *pc*) (stage-if *pc*)))
+		 (new-ex-mem (when *id-ex* (stage-ex *id-ex*)))
+		 (new-mem-wb (when *ex-mem* (stage-mem *ex-mem*)))
 		 (next-pc    (compute-next-pc *pc* new-ex-mem new-id-ex)))
 	;; Phase 2: commit everything at once (the clock edge)
 	(setf *if-id*  fetched
