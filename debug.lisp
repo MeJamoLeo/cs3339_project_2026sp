@@ -66,16 +66,23 @@
 			  (getf cs :alu-op))
 	  "-"))
 
+(defun stage-tag (preg)
+  "Format the [#id source] tag for a pipeline register."
+  (let ((id (getf preg :inst-id)))
+	(format nil "[#~A ~A]" id (source-of id))))
+
 (defun print-pipeline-state ()
   (format t "~&  IF/ID : ~A"
 		  (if *if-id*
-			  (format nil "instr=#x~8,'0X  pc+4=~A"
+			  (format nil "~A  instr=#x~8,'0X  pc+4=~A"
+					  (stage-tag *if-id*)
 					  (getf *if-id* :instruction)
 					  (getf *if-id* :pc+4))
 			  "(bubble)"))
   (format t "~&  ID/EX : ~A"
 		  (if *id-ex*
-			  (format nil "rs=~A rt=~A signExt=~A shamt=~A funct=~A | ~A"
+			  (format nil "~A  rs=~A rt=~A signExt=~A shamt=~A funct=~A | ~A"
+					  (stage-tag *id-ex*)
 					  (getf *id-ex* :data-reg-read1)
 					  (getf *id-ex* :data-reg-read2)
 					  (getf *id-ex* :sign-extended)
@@ -85,7 +92,8 @@
 			  "(bubble)"))
   (format t "~&  EX/MEM: ~A"
 		  (if *ex-mem*
-			  (format nil "aluResult=~A zero=~A brTarget=~A writeReg=~A | ~A"
+			  (format nil "~A  aluResult=~A zero=~A brTarget=~A writeReg=~A | ~A"
+					  (stage-tag *ex-mem*)
 					  (getf *ex-mem* :alu-result)
 					  (getf *ex-mem* :alu-zero)
 					  (getf *ex-mem* :branch-target)
@@ -94,7 +102,8 @@
 			  "(bubble)"))
   (format t "~&  MEM/WB: ~A"
 		  (if *mem-wb*
-			  (format nil "memData=~A aluResult=~A writeReg=~A | ~A"
+			  (format nil "~A  memData=~A aluResult=~A writeReg=~A | ~A"
+					  (stage-tag *mem-wb*)
 					  (getf *mem-wb* :mem-data)
 					  (getf *mem-wb* :alu-result)
 					  (getf *mem-wb* :write-reg)
