@@ -1,3 +1,13 @@
+;; Side table holding the original assembly source for each instruction.
+;; Indexed by inst-id (= PC/4) so the debugger can recover the mnemonic
+;; without polluting the pipeline with strings.
+(defparameter *instruction-source* #())
+
+(defun source-of (inst-id)
+  (if (and inst-id (< inst-id (length *instruction-source*)))
+	  (aref *instruction-source* inst-id)
+	  "?"))
+
 (defun snapshot ()
   (list :pc *pc*
 		:registers (copy-seq *register*)

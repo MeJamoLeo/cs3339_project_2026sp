@@ -19,10 +19,16 @@
   (fill *data-memory* 0))
 
 (defun load-assembly-file (path)
-  "Parse an assembly file and load it into instruction memory."
-  (setf *instruction-memory*
-		(coerce (mapcar #'encode (parse-assembly path))
-				'vector)))
+  "Parse an assembly file and load both the encoded instructions and the
+original source text. The source vector is parallel to the instruction
+memory and used by the debug layer for human-readable trace output."
+  (let* ((lines  (read-assembly path))
+		 (parsed (mapcar #'split-by-spaces lines)))
+	(setf *instruction-memory*
+		  (coerce (mapcar #'encode parsed) 'vector))
+	(setf *instruction-source*
+		  (coerce (mapcar (lambda (s) (string-trim " " s)) lines)
+				  'vector))))
 
 (defun demo (path &key (debug nil))
   "Run an assembly file through the pipelined simulator.
