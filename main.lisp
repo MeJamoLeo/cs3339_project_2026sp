@@ -330,7 +330,7 @@
 (defun stage-if (pc)
   (let* ((instruction (aref *instruction-memory*  (/ pc 4)))
 		  (pc+4 (+ pc 4)))
-	(list :instruction instruction :pc+4 pc+4)))
+	(list :inst-id (/ pc 4) :instruction instruction :pc+4 pc+4)))
 
 (defun stage-id (if-id)
   (let* ((decoded  (decode (getf if-id :instruction)))
@@ -347,7 +347,8 @@
 		 ;; register read
 		 (data-reg-read1 (read-register rs))
 		 (data-reg-read2 (read-register rt)))
-	(list :control-signals 	control-signals
+	(list :inst-id			(getf if-id :inst-id)
+		  :control-signals 	control-signals
 		  :pc+4				(getf if-id :pc+4)
 		  :data-reg-read1	data-reg-read1
 		  :data-reg-read2	data-reg-read2
@@ -375,7 +376,8 @@
 		 (write-reg (if (eql (getf control-signals :reg-dst) 1) ;; MUX for RegDst (eql: reg-dst may be nil for SW/BEQ/J)
 						(getf id-exec :rd)
 						(getf id-exec :rt))))
-	(list :control-signals control-signals
+	(list :inst-id         (getf id-exec :inst-id)
+		  :control-signals control-signals
 		  :branch-target   branch-target
 		  :alu-zero        (getf alu-output :zero)
 		  :alu-result      (getf alu-output :result)
@@ -390,7 +392,8 @@
 					   0)))
 	(when (= (getf control-signals :mem-write) 1)
 	  (write-data-memory alu-result (getf ex-mem :data-mem-write)))
-	(list :control-signals control-signals
+	(list :inst-id         (getf ex-mem :inst-id)
+		  :control-signals control-signals
 		  :mem-data        mem-data
 		  :alu-result      alu-result
 		  :write-reg       (getf ex-mem :write-reg))))

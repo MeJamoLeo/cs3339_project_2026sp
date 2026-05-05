@@ -336,20 +336,24 @@
 
 ;; "addi $t0, $zero, 5"
 (assert (equal (stage-if *pc*)
-			   (list :instruction #b00100000000010000000000000000101
+			   (list :inst-id 0
+					 :instruction #b00100000000010000000000000000101
 					 :pc+4 4)))
 
 (setf *pc* (+ *pc* 4))
 
  ;; "addi $t0, $zero, 5"
 (assert (equal (stage-if *pc*)
-			   (list :instruction #b00100000000010010000000000001010
+			   (list :inst-id 1
+					 :instruction #b00100000000010010000000000001010
 					 :pc+4 8)))
 
  ;; "addi $t0, $zero, 5"
-(assert (equal (stage-id (list :pc+4 *pc*
+(assert (equal (stage-id (list :inst-id 1
+							   :pc+4 *pc*
 							   :instruction #b00100000000010010000000000001010))
-			   (list :control-signals
+			   (list :inst-id 1
+					 :control-signals
 					 '(:reg-dst 0
 					   :alu-src 1
 					   :mem-to-reg 0
@@ -381,7 +385,8 @@
 					   :data-reg-read2 0
 					   :sign-extended 5
 					   :rt 8  :rd 0  :shamt 0  :funct 5  :addr 0))
-			   (list :control-signals '(:reg-dst 0 :alu-src 1 :mem-to-reg 0
+			   (list :inst-id nil
+					 :control-signals '(:reg-dst 0 :alu-src 1 :mem-to-reg 0
 										:reg-write 1 :mem-read 0 :mem-write 0
 										:branch 0 :jump 0 :alu-op 0)
 					 :branch-target 24
@@ -400,7 +405,8 @@
 					   :data-reg-read2 10
 					   :sign-extended 0
 					   :rt 9  :rd 16  :shamt 0  :funct #b100000  :addr 0))
-			   (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+			   (list :inst-id nil
+					 :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
 										:reg-write 1 :mem-read 0 :mem-write 0
 										:branch 0 :jump 0 :alu-op #b10)
 					 :branch-target 12
@@ -419,7 +425,8 @@
 					   :data-reg-read2 5
 					   :sign-extended 0
 					   :rt 16  :rd 20  :shamt 2  :funct #b000000  :addr 0))
-			   (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+			   (list :inst-id nil
+					 :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
 										:reg-write 1 :mem-read 0 :mem-write 0
 										:branch 0 :jump 0 :alu-op #b10)
 					 :branch-target 20
@@ -441,7 +448,8 @@
 					   :alu-result     0
 					   :data-mem-write 0
 					   :write-reg      10))
-			   (list :control-signals '(:reg-dst 0 :alu-src 1 :mem-to-reg 1
+			   (list :inst-id nil
+					 :control-signals '(:reg-dst 0 :alu-src 1 :mem-to-reg 1
 										:reg-write 1 :mem-read 1 :mem-write 0
 										:branch 0 :jump 0 :alu-op 0)
 					 :mem-data   42
@@ -470,7 +478,8 @@
 					   :alu-result     15
 					   :data-mem-write 0
 					   :write-reg      16))
-			   (list :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
+			   (list :inst-id nil
+					 :control-signals '(:reg-dst 1 :alu-src 0 :mem-to-reg 0
 										:reg-write 1 :mem-read 0 :mem-write 0
 										:branch 0 :jump 0 :alu-op #b10)
 					 :mem-data   0
