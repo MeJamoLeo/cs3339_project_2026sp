@@ -119,10 +119,12 @@ mark registers whose value changed since the last snapshot with '*'."
 			 (format t "~&  mem[~4D] = ~A" i v))
 	(unless any (format t "~&  (all zero)"))))
 
-(defun print-final-state ()
+(defun print-final-state (&optional total-cycles)
   (format t "~%~%===== Final State =====")
-  (format t "~&PC = ~A" *pc*)
-  (print-registers)
+  (format t "~&PC = #x~X" *pc*)
+  (when total-cycles
+	(format t "~&Total cycles: ~A" total-cycles))
+  (print-registers-grid)
   (print-memory-nonzero)
   (format t "~%"))
 
